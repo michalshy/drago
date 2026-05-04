@@ -20,11 +20,24 @@ namespace drago::rhi
         , window(window)
         , swapchain(nullptr)
     {
+        create_swapchain();
+        create_image_views();
+    }
+
+    VulkanSwapchain::~VulkanSwapchain()
+    {
+        for (auto image_view: image_views) {
+            device->get().destroyImageView(image_view);
+        }
+        device->get().destroySwapchainKHR(swapchain);
+    }
+
+    void VulkanSwapchain::create_swapchain() {
         SwapChainSupportDetails details = device->query_support(device->get_physical());
         
-        vk::SurfaceFormatKHR format = choose_surface_fmt(details.formats);
-        vk::PresentModeKHR mode = choose_present_mode(details.present_modes);
-        vk::Extent2D extent = choose_extent(details.capabilities);
+        vk::SurfaceFormatKHR swapchain_format = choose_surface_fmt(details.formats);
+        vk::PresentModeKHR swapchain_mode = choose_present_mode(details.present_modes);
+        vk::Extent2D swapchain_extent = choose_extent(details.capabilities);
 
         uint32_t image_count = details.capabilities.minImageCount + 1;
         if (details.capabilities.maxImageCount > 0 &&
@@ -35,9 +48,9 @@ namespace drago::rhi
         auto swapchain_info = vk::SwapchainCreateInfoKHR{}
             .setSurface(surface->get())
             .setMinImageCount(image_count)
-            .setImageFormat(format.format)
-            .setImageColorSpace(format.colorSpace)
-            .setImageExtent(extent)
+            .setImageFormat(swapchain_format.format)
+            .setImageColorSpace(swapchain_format.colorSpace)
+            .setImageExtent(swapchain_extent)
             .setImageArrayLayers(1)
             .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment);
 
@@ -56,7 +69,7 @@ namespace drago::rhi
 
         swapchain_info.setPreTransform(details.capabilities.currentTransform);
         swapchain_info.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque);
-        swapchain_info.setPresentMode(mode);
+        swapchain_info.setPresentMode(swapchain_mode);
         swapchain_info.setClipped(vk::True);
 
         swapchain_info.setOldSwapchain(nullptr);
@@ -67,13 +80,34 @@ namespace drago::rhi
         }
 
         images = device->get().getSwapchainImagesKHR(swapchain);
-        extent = extent;
-        format = format;
+        extent = swapchain_extent;
+        format = swapchain_format;
     }
 
-    VulkanSwapchain::~VulkanSwapchain()
+    void VulkanSwapchain::create_image_views() 
     {
-        device->get().destroySwapchainKHR(swapchain);
+        image_views.resize(images.size());
+
+        auto sub = vk::ImageSubresourceRange{}
+            .setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setBaseMipLevel(0)
+            .setLevelCount(1)
+            .setBaseArrayLayer(0)
+            .setLayerCount(1);
+
+        for (size_t i = 0; i < images.size(); ++i) {
+            auto create_info = vk::ImageViewCreateInfo{}
+                .setImage(images[i])
+                .setViewType(vk::ImageViewType::e2D)
+                .setFormat(format.format)
+                .setComponents(vk::ComponentSwizzle::eIdentity)
+                .setSubresourceRange(sub);
+
+            image_views[i] = device->get().createImageView(create_info);
+            if(!image_views[i]) {
+                throw std::runtime_error("failed to create image view");
+            }
+        }
     }
 
     vk::SurfaceFormatKHR VulkanSwapchain::choose_surface_fmt(
