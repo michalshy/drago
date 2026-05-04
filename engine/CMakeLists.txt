@@ -4,6 +4,7 @@ add_library(engine STATIC
     rhi/vulkan/VulkanInstance.cpp
     rhi/vulkan/VulkanDevice.cpp
     rhi/vulkan/VulkanSwapchain.cpp
+    rhi/vulkan/VulkanSurface.cpp
     renderer/Renderer.cpp
 )
 

@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include "rhi/vulkan/VulkanInstance.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "rhi/vulkan/VulkanSurface.h"
 
 int main() {
     glfwInit();
@@ -11,7 +12,10 @@ int main() {
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
 
-    drago::rhi::VulkanDevice device(&instance);
+    drago::rhi::VulkanSurface surface(&instance, window);
+    spdlog::info("Surface OK");
+
+    drago::rhi::VulkanDevice device(&instance, &surface);
     spdlog::info("Device OK");
 
     while (!glfwWindowShouldClose(window)) {
