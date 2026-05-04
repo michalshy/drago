@@ -8,6 +8,7 @@
 
 namespace drago::rhi
 {
+    struct SwapChainSupportDetails;
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphics_family;
         std::optional<uint32_t> present_family;
@@ -25,6 +26,12 @@ namespace drago::rhi
             VulkanSurface* surface
         );
         ~VulkanDevice();
+
+        vk::PhysicalDevice get_physical() { return physical_dev; }
+        vk::Device get() { return dev; }
+    
+        SwapChainSupportDetails query_support(vk::PhysicalDevice dev);
+        QueueFamilyIndices find_queue_families(vk::PhysicalDevice dev);
     private:
         vk::PhysicalDevice physical_dev;
         vk::Device dev;
@@ -36,8 +43,8 @@ namespace drago::rhi
 
         void pick_physical_device();
         void create_logical_device();
-        QueueFamilyIndices find_queue_families(vk::PhysicalDevice dev);
 
         bool is_device_suitable(vk::PhysicalDevice dev);
+        bool check_extension_support(vk::PhysicalDevice dev);
     };
 }

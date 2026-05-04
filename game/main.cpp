@@ -3,6 +3,7 @@
 #include "rhi/vulkan/VulkanInstance.h"
 #include "rhi/vulkan/VulkanDevice.h"
 #include "rhi/vulkan/VulkanSurface.h"
+#include "rhi/vulkan/VulkanSwapchain.h"
 
 int main() {
     glfwInit();
@@ -17,6 +18,9 @@ int main() {
 
     drago::rhi::VulkanDevice device(&instance, &surface);
     spdlog::info("Device OK");
+
+    drago::rhi::VulkanSwapchain swapchain(&surface, &device, window);
+    spdlog::info("Swapchain OK");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

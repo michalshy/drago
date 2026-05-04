@@ -3,11 +3,17 @@
 #include "rhi/vulkan/VulkanSurface.h"
 #include "vulkan/vulkan.hpp"
 #include <stdexcept>
+#include <string>
 #include <vector>
 #include <set>
+#include "VulkanSwapchain.h"
 
 namespace drago::rhi
 {
+
+const std::vector<const char*> DEVICE_EXTENSIONS = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
 
 VulkanDevice::VulkanDevice(
     VulkanInstance* instance,
@@ -25,6 +31,40 @@ VulkanDevice::VulkanDevice(
 VulkanDevice::~VulkanDevice()
 {
     dev.destroy();
+}
+
+SwapChainSupportDetails VulkanDevice::query_support(vk::PhysicalDevice dev)
+{
+    SwapChainSupportDetails details;
+    details.capabilities = dev.getSurfaceCapabilitiesKHR(surface->get());
+    details.formats = dev.getSurfaceFormatsKHR(surface->get());
+    details.present_modes = dev.getSurfacePresentModesKHR(surface->get());
+    return details;
+}
+
+QueueFamilyIndices VulkanDevice::find_queue_families(vk::PhysicalDevice dev)
+{
+    QueueFamilyIndices indices;
+
+    auto families = dev.getQueueFamilyProperties();
+    int i = 0;
+    for (const auto& queueFamily : families) {
+        if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
+            indices.graphics_family = i;
+        }
+
+        if (dev.getSurfaceSupportKHR(i, surface->get())) {
+            indices.present_family = i;
+        }
+
+        if (indices.is_complete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
 
 void VulkanDevice::pick_physical_device() 
@@ -71,7 +111,8 @@ void VulkanDevice::create_logical_device()
 
     auto device_info = vk::DeviceCreateInfo{}
         .setQueueCreateInfos(queue_create_infos)
-        .setPEnabledFeatures(&device_features);
+        .setPEnabledFeatures(&device_features)
+        .setPEnabledExtensionNames(DEVICE_EXTENSIONS);
 
     dev = physical_dev.createDevice(device_info);
 
@@ -80,35 +121,30 @@ void VulkanDevice::create_logical_device()
     present_queue  = dev.getQueue(indices.present_family.value(), 0);
 }
 
-QueueFamilyIndices VulkanDevice::find_queue_families(vk::PhysicalDevice dev)
-{
-    QueueFamilyIndices indices;
-
-    auto families = dev.getQueueFamilyProperties();
-    int i = 0;
-    for (const auto& queueFamily : families) {
-        if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
-            indices.graphics_family = i;
-        }
-
-        if (dev.getSurfaceSupportKHR(i, surface->get())) {
-            indices.present_family = i;
-        }
-
-        if (indices.is_complete()) {
-            break;
-        }
-
-        i++;
-    }
-
-    return indices;
-}
-
 bool VulkanDevice::is_device_suitable(vk::PhysicalDevice dev)
 {
     QueueFamilyIndices indices = find_queue_families(dev);
-    return indices.is_complete();
+    bool ex_support = check_extension_support(dev);
+
+    bool swapchain_fit = false;
+    if (ex_support) {
+        SwapChainSupportDetails details = query_support(dev);
+        swapchain_fit = !details.formats.empty() && !details.present_modes.empty();
+    }
+
+    return indices.is_complete() && ex_support && swapchain_fit;
+}
+
+bool VulkanDevice::check_extension_support(vk::PhysicalDevice dev) {
+    auto extensions = dev.enumerateDeviceExtensionProperties();
+
+    std::set<std::string> required(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
+
+    for(const auto& extension: extensions) {
+        required.erase(extension.extensionName);
+    }
+
+    return required.empty();
 }
 
 }
