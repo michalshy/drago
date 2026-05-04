@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include "rhi/vulkan/VulkanInstance.h"
+#include "rhi/vulkan/VulkanDevice.h"
 
 int main() {
     glfwInit();
@@ -9,6 +10,9 @@ int main() {
 
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
+
+    drago::rhi::VulkanDevice device(&instance);
+    spdlog::info("Device OK");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

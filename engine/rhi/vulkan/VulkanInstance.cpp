@@ -7,12 +7,8 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace drago::rhi {
 
-const std::vector<const char*> validation_layers = {
-    "VK_LAYER_KHRONOS_validation"
-};
-
-VulkanInstance::VulkanInstance(bool enableValidation)
-    : validation(enableValidation)
+VulkanInstance::VulkanInstance(bool enable_validation)
+    : validation(enable_validation)
 {
     create_instance();
     if (validation) setup_debug();

@@ -1,12 +1,14 @@
 #pragma once
 #include "vulkan/vulkan.hpp"
-#include <vector>
-#include <string>
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan_core.h>
 
 namespace drago::rhi
 {
+    const std::vector<const char*> validation_layers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+
     class VulkanInstance {
     public:
         explicit VulkanInstance(bool enable_validation = true);
