@@ -2,6 +2,8 @@ add_library(engine STATIC
     core/Window.cpp
     core/EventLoop.cpp
     rhi/vulkan/VulkanInstance.cpp
+    rhi/vulkan/VulkanRenderPass.cpp
+    rhi/vulkan/VulkanPipeline.cpp
     rhi/vulkan/VulkanDevice.cpp
     rhi/vulkan/VulkanSwapchain.cpp
     rhi/vulkan/VulkanSurface.cpp
