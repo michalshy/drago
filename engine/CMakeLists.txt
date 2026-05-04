@@ -7,5 +7,6 @@ add_library(engine STATIC
     renderer/Renderer.cpp
 )
 
+target_compile_definitions(engine PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(engine PUBLIC glfw glm spdlog::spdlog Vulkan::Vulkan)
