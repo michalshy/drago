@@ -23,6 +23,8 @@ namespace drago::rhi
             GLFWwindow* window  
         );
         ~VulkanSwapchain();
+
+        vk::Extent2D get_extent() { return extent; }
     private:
         VulkanSurface* surface;
         VulkanDevice* device;
