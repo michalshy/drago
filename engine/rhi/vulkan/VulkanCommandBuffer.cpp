@@ -3,6 +3,7 @@
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "vulkan/vulkan.hpp"
+#include <cstdint>
 #include <vulkan/vulkan_core.h>
 
 namespace drago::rhi
@@ -38,22 +39,53 @@ VulkanCommandBuffer::VulkanCommandBuffer(
     auto alloc_info = vk::CommandBufferAllocateInfo{}
         .setCommandPool(pool)
         .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(1);
+        .setCommandBufferCount(swapchain->get_image_count());
 
     buffers = device->get().allocateCommandBuffers(alloc_info);
+
+    create_sync();
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
 {
+    device->get().destroySemaphore(render_finished_sem);
+    device->get().destroySemaphore(image_available_sem);
+    device->get().destroyFence(in_flight_fen);
     device->get().destroyCommandPool(pool);
 }
 
-void VulkanCommandBuffer::record(vk::CommandBuffer cmd, uint32_t img_idx)
+void VulkanCommandBuffer::submit(uint32_t idx)
 {
+    auto submit_info = vk::SubmitInfo{};
+
+    vk::Semaphore wait[] = {image_available_sem};
+    vk::PipelineStageFlags stages[] = {
+        vk::PipelineStageFlagBits::eColorAttachmentOutput
+    };
+
+    submit_info.setWaitSemaphoreCount(1);
+    submit_info.setPWaitSemaphores(wait);
+    submit_info.setWaitDstStageMask(stages);
+
+    vk::CommandBuffer cmd_buffers[] = { buffers[idx] };
+    submit_info.setCommandBufferCount(1);
+    submit_info.setPCommandBuffers(cmd_buffers);
+
+    vk::Semaphore signal_semaphores[] = { render_finished_sem };
+    submit_info.setSignalSemaphoreCount(1);
+    submit_info.setPSignalSemaphores(signal_semaphores);
+
+    device->get_graphics().submit(submit_info, in_flight_fen);
+}
+
+void VulkanCommandBuffer::record(uint32_t img_idx)
+{
+    auto& cmd = buffers[img_idx];
+
     auto begin_info = vk::CommandBufferBeginInfo{};
     cmd.begin(begin_info);
 
-    vk::ClearColorValue color = {0.0f, 0.0f, 0.0f, 1.0f};
+    vk::ClearValue clear_value{vk::ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f}};
     auto renderpass_info = vk::RenderPassBeginInfo{}
         .setRenderPass(renderpass->get())
         .setFramebuffer(framebuffer->get()[img_idx])
@@ -63,7 +95,7 @@ void VulkanCommandBuffer::record(vk::CommandBuffer cmd, uint32_t img_idx)
                 .setOffset({{0,0}})
         )
         .setClearValueCount(1)
-        .setClearValues(color);
+        .setClearValues(clear_value);
 
     cmd.beginRenderPass(renderpass_info, vk::SubpassContents::eInline);
 
@@ -91,5 +123,30 @@ void VulkanCommandBuffer::record(vk::CommandBuffer cmd, uint32_t img_idx)
     cmd.end();
 }
 
+void VulkanCommandBuffer::reset(uint32_t frame_idx)
+{
+    buffers[frame_idx].reset();
+}
+
+void VulkanCommandBuffer::wait_for_fence()
+{
+    [[maybe_unused]] auto result = device->get().waitForFences(in_flight_fen, vk::True, UINT64_MAX);
+}
+
+void VulkanCommandBuffer::reset_fence()
+{
+    device->get().resetFences(in_flight_fen);
+}
+
+void VulkanCommandBuffer::create_sync()
+{
+    auto sem_info = vk::SemaphoreCreateInfo{};
+    auto fen_info = vk::FenceCreateInfo{}
+        .setFlags(vk::FenceCreateFlagBits::eSignaled);
+
+    image_available_sem = device->get().createSemaphore(sem_info);
+    render_finished_sem = device->get().createSemaphore(sem_info);
+    in_flight_fen = device->get().createFence(fen_info);
+}
 
 }

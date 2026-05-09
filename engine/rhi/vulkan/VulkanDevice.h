@@ -29,7 +29,11 @@ namespace drago::rhi
 
         vk::PhysicalDevice get_physical() { return physical_dev; }
         vk::Device get() { return dev; }
-    
+        vk::Queue get_graphics() { return graphics_queue; }
+        vk::Queue get_present() { return present_queue; }
+
+        void wait();
+
         SwapChainSupportDetails query_support(vk::PhysicalDevice dev);
         QueueFamilyIndices find_queue_families(vk::PhysicalDevice dev);
     private:

@@ -33,6 +33,11 @@ VulkanDevice::~VulkanDevice()
     dev.destroy();
 }
 
+void VulkanDevice::wait()
+{
+    dev.waitIdle();
+}
+
 SwapChainSupportDetails VulkanDevice::query_support(vk::PhysicalDevice dev)
 {
     SwapChainSupportDetails details;

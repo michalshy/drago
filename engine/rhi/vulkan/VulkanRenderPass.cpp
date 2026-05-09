@@ -29,11 +29,22 @@ VulkanRenderPass::VulkanRenderPass(
         .setColorAttachmentCount(1)
         .setColorAttachments(color_att_ref);
 
+    auto dependency = vk::SubpassDependency{}
+        .setSrcSubpass(vk::SubpassExternal)
+        .setDstSubpass(0)
+        .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+        .setSrcAccessMask(vk::AccessFlags{})
+        .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
+        .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
+
+
     auto renderpass_info = vk::RenderPassCreateInfo{}
         .setAttachmentCount(1)
         .setAttachments(color_att)
         .setSubpassCount(1)
-        .setSubpasses(subpass);
+        .setSubpasses(subpass)
+        .setDependencyCount(1)
+        .setPDependencies(&dependency);
 
     renderpass = device->get().createRenderPass(renderpass_info);
     

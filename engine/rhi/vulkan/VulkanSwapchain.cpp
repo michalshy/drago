@@ -32,6 +32,22 @@ namespace drago::rhi
         device->get().destroySwapchainKHR(swapchain);
     }
 
+    void VulkanSwapchain::present(uint32_t img_idx, vk::Semaphore wait_semaphore)
+    {
+        auto present_info = vk::PresentInfoKHR{}
+            .setWaitSemaphoreCount(1)
+            .setPWaitSemaphores(&wait_semaphore);
+
+        vk::SwapchainKHR swapchains[] = { swapchain };
+        present_info.setSwapchainCount(1);
+        present_info.setPSwapchains(swapchains);
+        present_info.setPImageIndices(&img_idx);
+        present_info.setPResults(nullptr);
+        
+        [[maybe_unused]] auto res = device->get_present().presentKHR(present_info);
+    }
+
+
     void VulkanSwapchain::create_swapchain() {
         SwapChainSupportDetails details = device->query_support(device->get_physical());
         

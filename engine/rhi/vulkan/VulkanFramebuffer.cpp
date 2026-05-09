@@ -21,7 +21,7 @@ VulkanFramebuffer::VulkanFramebuffer(
         auto framebuffer_info = vk::FramebufferCreateInfo{}
             .setRenderPass(renderpass->get())
             .setAttachmentCount(1)
-            .setAttachments(swapchain->get_views())
+            .setAttachments(view)
             .setWidth(swapchain->get_extent().width)
             .setHeight(swapchain->get_extent().height)
             .setLayers(1);

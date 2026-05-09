@@ -4,6 +4,7 @@
 #include "rhi/vulkan/VulkanDevice.h"
 #include "rhi/vulkan/VulkanSurface.h"
 #include "vulkan/vulkan.hpp"
+#include <cstdint>
 #include <vector>
 
 namespace drago::rhi
@@ -24,16 +25,19 @@ namespace drago::rhi
         );
         ~VulkanSwapchain();
 
+        vk::SwapchainKHR get() { return swapchain; }
         vk::Extent2D get_extent() { return extent; }
         vk::SurfaceFormatKHR get_format() { return format; }
         std::vector<vk::ImageView>& get_views() { return image_views; }
+        uint32_t get_image_count() { return images.size(); }
 
+        void present(uint32_t img_idx, vk::Semaphore wait_semaphore);
     private:
         VulkanSurface* surface;
         VulkanDevice* device;
         GLFWwindow* window;
 
-        VkSwapchainKHR swapchain;
+        vk::SwapchainKHR swapchain;
         std::vector<vk::Image> images;
         vk::SurfaceFormatKHR format;
         vk::Extent2D extent;
