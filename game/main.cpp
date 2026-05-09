@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include "rhi/vulkan/VulkanInstance.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanSurface.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
@@ -23,7 +24,10 @@ int main() {
     drago::rhi::VulkanSwapchain swapchain(&surface, &device, window);
     spdlog::info("Swapchain OK");
 
-    drago::rhi::VulkanPipeline pipeline(&device);
+    drago::rhi::VulkanRenderPass renderpass(&device, &swapchain);
+    spdlog::info("Renderpass OK");
+
+    drago::rhi::VulkanPipeline pipeline(&device, &renderpass, &swapchain);
     spdlog::info("Pipeline OK");
 
     while (!glfwWindowShouldClose(window)) {

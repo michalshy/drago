@@ -25,6 +25,7 @@ namespace drago::rhi
         ~VulkanSwapchain();
 
         vk::Extent2D get_extent() { return extent; }
+        vk::SurfaceFormatKHR get_format() { return format; }
     private:
         VulkanSurface* surface;
         VulkanDevice* device;

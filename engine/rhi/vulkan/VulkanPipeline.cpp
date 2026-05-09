@@ -34,9 +34,11 @@ static std::vector<char> read_file(const std::string& filename)
 
 VulkanPipeline::VulkanPipeline(
     VulkanDevice* device,
+    VulkanRenderPass* renderpass,
     VulkanSwapchain* swapchain
 )
     : device(device)
+    , renderpass(renderpass)
     , swapchain(swapchain)
 {
     auto shader_module = create_shader_module(details::read_file(ASSETS_DIR "/shaders/compiled/base.spv"));
@@ -108,10 +110,37 @@ VulkanPipeline::VulkanPipeline(
     .setPushConstantRangeCount(0);
 
     pipeline_layout = device->get().createPipelineLayout(pipeline_layout_info);
+
+    // create pipeline
+
+    auto pipeline_info = vk::GraphicsPipelineCreateInfo{}
+        .setStageCount(2)
+        .setStages(shader_stages)
+        .setPVertexInputState(&vertex_input)
+        .setPInputAssemblyState(&input_assembly)
+        .setPViewportState(&viewport_state)
+        .setPRasterizationState(&rasterizer)
+        .setPMultisampleState(&multisampling)
+        .setPDepthStencilState(nullptr)
+        .setPColorBlendState(&color_blending)
+        .setPDynamicState(&dynamic_state)
+        .setLayout(pipeline_layout)
+        .setRenderPass(renderpass->get())
+        .setSubpass(0)
+        .setBasePipelineHandle(nullptr)
+        .setBasePipelineIndex(-1);
+
+    graphics_pipeline = device->get().createGraphicsPipeline(nullptr, pipeline_info).value;
+
+    if(!graphics_pipeline)
+    {
+        throw std::runtime_error("failed to create graphics pipeline!");
+    }
 }
 
 VulkanPipeline::~VulkanPipeline()
 {
+    device->get().destroyPipeline(graphics_pipeline);
     device->get().destroyPipelineLayout(pipeline_layout);
 }
 
