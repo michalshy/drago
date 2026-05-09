@@ -26,6 +26,8 @@ namespace drago::rhi
 
         vk::Extent2D get_extent() { return extent; }
         vk::SurfaceFormatKHR get_format() { return format; }
+        std::vector<vk::ImageView>& get_views() { return image_views; }
+
     private:
         VulkanSurface* surface;
         VulkanDevice* device;
