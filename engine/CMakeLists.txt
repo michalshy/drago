@@ -8,6 +8,7 @@ add_library(engine STATIC
     rhi/vulkan/VulkanSwapchain.cpp
     rhi/vulkan/VulkanSurface.cpp
     rhi/vulkan/VulkanFramebuffer.cpp
+    rhi/vulkan/VulkanCommandBuffer.cpp
     renderer/Renderer.cpp
 )
 

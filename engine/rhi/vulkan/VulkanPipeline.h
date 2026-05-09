@@ -20,6 +20,7 @@ public:
     );
     ~VulkanPipeline();
 
+    vk::Pipeline get_pipeline() { return graphics_pipeline; }
 private:
     VulkanDevice* device;
     VulkanRenderPass* renderpass;

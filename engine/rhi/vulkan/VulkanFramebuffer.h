@@ -19,6 +19,8 @@ public:
     );
     ~VulkanFramebuffer();
 
+    std::vector<vk::Framebuffer>& get(){ return framebuffers; }
+
 private:
     VulkanSwapchain* swapchain;
     VulkanRenderPass* renderpass;
