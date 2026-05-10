@@ -16,6 +16,19 @@ VulkanFramebuffer::VulkanFramebuffer(
     , swapchain(swapchain)
     , renderpass(renderpass)
 {
+    create();
+}
+
+VulkanFramebuffer::~VulkanFramebuffer()
+{
+    for(auto& framebuffer : framebuffers) 
+    {
+        device->get().destroyFramebuffer(framebuffer);   
+    }
+}
+
+void VulkanFramebuffer::create()
+{
     for(auto& view : swapchain->get_views())
     {
         auto framebuffer_info = vk::FramebufferCreateInfo{}
@@ -32,12 +45,14 @@ VulkanFramebuffer::VulkanFramebuffer(
     }
 }
 
-VulkanFramebuffer::~VulkanFramebuffer()
+void VulkanFramebuffer::recreate()
 {
-    for(auto& framebuffer : framebuffers) 
+    for(auto& fb: framebuffers)
     {
-        device->get().destroyFramebuffer(framebuffer);   
+        device->get().destroyFramebuffer(fb);
     }
+    framebuffers.clear();
+    create();
 }
 
 }

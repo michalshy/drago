@@ -32,6 +32,7 @@ namespace drago::rhi
         uint32_t get_image_count() { return images.size(); }
 
         void present(uint32_t img_idx, vk::Semaphore wait_semaphore);
+        void recreate();    
     private:
         VulkanSurface* surface;
         VulkanDevice* device;
@@ -47,6 +48,7 @@ namespace drago::rhi
 
         void create_swapchain();
         void create_image_views();
+        void cleanup();
 
         vk::SurfaceFormatKHR choose_surface_fmt(const std::vector<vk::SurfaceFormatKHR>& formats);
         vk::PresentModeKHR choose_present_mode(const std::vector<vk::PresentModeKHR>& modes);

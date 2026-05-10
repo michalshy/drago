@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <cstdint>
 #include <spdlog/spdlog.h>
+#include <vulkan/vulkan.hpp>
 #include "rhi/vulkan/VulkanCommandBuffer.h"
 #include "rhi/vulkan/VulkanFramebuffer.h"
 #include "rhi/vulkan/VulkanInstance.h"
@@ -10,18 +11,20 @@
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
 
-void draw_frame(
-    drago::rhi::VulkanCommandBuffer* cmd,
-    drago::rhi::VulkanDevice* dev
-)
-{
-    
+static void on_framebuffer_resize(GLFWwindow* window, int width, int height) {
+    auto* flag = reinterpret_cast<bool*>(glfwGetWindowUserPointer(window));
+    *flag = true;
 }
 
 int main() {
+    bool resized = false;
+
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "drago", nullptr, nullptr);
+
+    glfwSetWindowUserPointer(window, &resized);
+    glfwSetFramebufferSizeCallback(window, on_framebuffer_resize);
 
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
@@ -50,14 +53,36 @@ int main() {
         glfwPollEvents();
         
         cmd.wait_for_fence(current_frame);
+        
+        uint32_t idx;
+        try {
+            idx = device.get().acquireNextImageKHR(
+                swapchain.get(), UINT64_MAX,
+                cmd.image_semaphore(current_frame)
+            ).value;
+        } catch (vk::OutOfDateKHRError&) {
+            resized = false;
+            cmd.recreate();
+            continue;
+        }
+        
         cmd.reset_fence(current_frame);
-
-        uint32_t idx = device.get().acquireNextImageKHR(swapchain.get(), UINT64_MAX, cmd.image_semaphore(current_frame)).value;
         cmd.reset(current_frame);
         cmd.record(idx, current_frame);
         cmd.submit(idx, current_frame);
         
-        swapchain.present(idx, cmd.render_semaphore(idx));
+        try {
+            swapchain.present(idx, cmd.render_semaphore(idx));
+        } catch (vk::OutOfDateKHRError&) {
+            resized = false;
+            cmd.recreate();
+        }
+
+        if(resized)
+        {
+            resized = false;
+            cmd.recreate();
+        }
     
         current_frame = (current_frame + 1) % drago::rhi::MAX_FRAMES_IN_FLIGHT;
     }

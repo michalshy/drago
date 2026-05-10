@@ -26,10 +26,7 @@ namespace drago::rhi
 
     VulkanSwapchain::~VulkanSwapchain()
     {
-        for (auto image_view: image_views) {
-            device->get().destroyImageView(image_view);
-        }
-        device->get().destroySwapchainKHR(swapchain);
+        cleanup();
     }
 
     void VulkanSwapchain::present(uint32_t img_idx, vk::Semaphore wait_semaphore)
@@ -47,6 +44,19 @@ namespace drago::rhi
         [[maybe_unused]] auto res = device->get_present().presentKHR(present_info);
     }
 
+    void VulkanSwapchain::recreate()
+    {
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(window, &width, &height);
+        while (width == 0 || height == 0) {
+            glfwGetFramebufferSize(window, &width, &height);
+            glfwWaitEvents();
+        }
+
+        cleanup();
+        create_swapchain();
+        create_image_views();
+    }
 
     void VulkanSwapchain::create_swapchain() {
         SwapChainSupportDetails details = device->query_support(device->get_physical());
@@ -124,6 +134,16 @@ namespace drago::rhi
                 throw std::runtime_error("failed to create image view");
             }
         }
+    }
+
+    void VulkanSwapchain::cleanup()
+    {
+        for(auto view : image_views)
+        {
+            device->get().destroyImageView(view);
+        }
+        image_views.clear();
+        device->get().destroySwapchainKHR(swapchain);
     }
 
     vk::SurfaceFormatKHR VulkanSwapchain::choose_surface_fmt(

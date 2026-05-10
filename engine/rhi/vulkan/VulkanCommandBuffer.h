@@ -31,12 +31,13 @@ public:
     void submit(uint32_t img_idx, uint32_t frame_idx);
     void record(uint32_t img_idx, uint32_t frame_idx);
     void reset(uint32_t frame_idx);
+    void recreate();
 
     void wait_for_fence(uint32_t frame_idx);
     void reset_fence(uint32_t frame_idx);
 
     vk::Semaphore image_semaphore(uint32_t frame_idx) { return image_available_sems[frame_idx]; }
-    vk::Semaphore render_semaphore(uint32_t frame_idx) { return render_finished_sems[frame_idx]; }
+    vk::Semaphore render_semaphore(uint32_t img_idx) { return render_finished_sems[img_idx]; }
 private:
     // refs
     VulkanDevice* device;

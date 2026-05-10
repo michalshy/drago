@@ -135,6 +135,14 @@ void VulkanCommandBuffer::reset(uint32_t frame_idx)
     buffers[frame_idx].reset();
 }
 
+void VulkanCommandBuffer::recreate()
+{
+    device->wait();
+
+    swapchain->recreate();
+    framebuffer->recreate();
+}
+
 void VulkanCommandBuffer::wait_for_fence(uint32_t frame_idx)
 {
     [[maybe_unused]] auto result = device->get().waitForFences(in_flight_fens[frame_idx], vk::True, UINT64_MAX);
