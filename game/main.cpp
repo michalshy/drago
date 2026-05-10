@@ -45,18 +45,21 @@ int main() {
 
     drago::rhi::VulkanCommandBuffer cmd(&device, &framebuffer, &swapchain, &renderpass, &pipeline);
 
+    uint32_t current_frame = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
-        cmd.wait_for_fence();
-        cmd.reset_fence();
+        cmd.wait_for_fence(current_frame);
+        cmd.reset_fence(current_frame);
 
-        uint32_t idx = device.get().acquireNextImageKHR(swapchain.get(), UINT64_MAX, cmd.image_semaphore()).value;
-        cmd.reset(idx);
-        cmd.record(idx);
-        cmd.submit(idx);
+        uint32_t idx = device.get().acquireNextImageKHR(swapchain.get(), UINT64_MAX, cmd.image_semaphore(current_frame)).value;
+        cmd.reset(current_frame);
+        cmd.record(idx, current_frame);
+        cmd.submit(idx, current_frame);
         
-        swapchain.present(idx, cmd.render_semaphore());
+        swapchain.present(idx, cmd.render_semaphore(idx));
+    
+        current_frame = (current_frame + 1) % drago::rhi::MAX_FRAMES_IN_FLIGHT;
     }
 
     device.wait();

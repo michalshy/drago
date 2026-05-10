@@ -10,8 +10,11 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
+
 namespace drago::rhi
 {
+
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanCommandBuffer
 {
@@ -25,15 +28,15 @@ public:
     );
     ~VulkanCommandBuffer();
 
-    void submit(uint32_t idx);
-    void record(uint32_t img_idx);
+    void submit(uint32_t img_idx, uint32_t frame_idx);
+    void record(uint32_t img_idx, uint32_t frame_idx);
     void reset(uint32_t frame_idx);
 
-    void wait_for_fence();
-    void reset_fence();
+    void wait_for_fence(uint32_t frame_idx);
+    void reset_fence(uint32_t frame_idx);
 
-    vk::Semaphore image_semaphore() { return image_available_sem; }
-    vk::Semaphore render_semaphore() { return render_finished_sem; }
+    vk::Semaphore image_semaphore(uint32_t frame_idx) { return image_available_sems[frame_idx]; }
+    vk::Semaphore render_semaphore(uint32_t frame_idx) { return render_finished_sems[frame_idx]; }
 private:
     // refs
     VulkanDevice* device;
@@ -46,9 +49,9 @@ private:
     std::vector<vk::CommandBuffer> buffers;
     // sync
     void create_sync();
-    vk::Semaphore image_available_sem;
-    vk::Semaphore render_finished_sem;
-    vk::Fence in_flight_fen;
+    std::vector<vk::Semaphore> image_available_sems;
+    std::vector<vk::Semaphore> render_finished_sems;
+    std::vector<vk::Fence> in_flight_fens;
 };
 
 }

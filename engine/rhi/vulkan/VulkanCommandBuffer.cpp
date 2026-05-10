@@ -3,6 +3,7 @@
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "vulkan/vulkan.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <vulkan/vulkan_core.h>
 
@@ -48,17 +49,23 @@ VulkanCommandBuffer::VulkanCommandBuffer(
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
 {
-    device->get().destroySemaphore(render_finished_sem);
-    device->get().destroySemaphore(image_available_sem);
-    device->get().destroyFence(in_flight_fen);
+    for(size_t i = 0; i < swapchain->get_image_count(); i++)
+    {
+        device->get().destroySemaphore(render_finished_sems[i]);
+    }
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        device->get().destroySemaphore(image_available_sems[i]);
+        device->get().destroyFence(in_flight_fens[i]);
+    }
     device->get().destroyCommandPool(pool);
 }
 
-void VulkanCommandBuffer::submit(uint32_t idx)
+void VulkanCommandBuffer::submit(uint32_t img_idx, uint32_t frame_idx)
 {
     auto submit_info = vk::SubmitInfo{};
 
-    vk::Semaphore wait[] = {image_available_sem};
+    vk::Semaphore wait[] = {image_available_sems[frame_idx]};
     vk::PipelineStageFlags stages[] = {
         vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
@@ -67,20 +74,20 @@ void VulkanCommandBuffer::submit(uint32_t idx)
     submit_info.setPWaitSemaphores(wait);
     submit_info.setWaitDstStageMask(stages);
 
-    vk::CommandBuffer cmd_buffers[] = { buffers[idx] };
+    vk::CommandBuffer cmd_buffers[] = { buffers[frame_idx] };
     submit_info.setCommandBufferCount(1);
     submit_info.setPCommandBuffers(cmd_buffers);
 
-    vk::Semaphore signal_semaphores[] = { render_finished_sem };
+    vk::Semaphore signal_semaphores[] = { render_finished_sems[img_idx] };
     submit_info.setSignalSemaphoreCount(1);
     submit_info.setPSignalSemaphores(signal_semaphores);
 
-    device->get_graphics().submit(submit_info, in_flight_fen);
+    device->get_graphics().submit(submit_info, in_flight_fens[frame_idx]);
 }
 
-void VulkanCommandBuffer::record(uint32_t img_idx)
+void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
 {
-    auto& cmd = buffers[img_idx];
+    auto& cmd = buffers[frame_idx];
 
     auto begin_info = vk::CommandBufferBeginInfo{};
     cmd.begin(begin_info);
@@ -128,14 +135,14 @@ void VulkanCommandBuffer::reset(uint32_t frame_idx)
     buffers[frame_idx].reset();
 }
 
-void VulkanCommandBuffer::wait_for_fence()
+void VulkanCommandBuffer::wait_for_fence(uint32_t frame_idx)
 {
-    [[maybe_unused]] auto result = device->get().waitForFences(in_flight_fen, vk::True, UINT64_MAX);
+    [[maybe_unused]] auto result = device->get().waitForFences(in_flight_fens[frame_idx], vk::True, UINT64_MAX);
 }
 
-void VulkanCommandBuffer::reset_fence()
+void VulkanCommandBuffer::reset_fence(uint32_t frame_idx)
 {
-    device->get().resetFences(in_flight_fen);
+    device->get().resetFences(in_flight_fens[frame_idx]);
 }
 
 void VulkanCommandBuffer::create_sync()
@@ -144,9 +151,15 @@ void VulkanCommandBuffer::create_sync()
     auto fen_info = vk::FenceCreateInfo{}
         .setFlags(vk::FenceCreateFlagBits::eSignaled);
 
-    image_available_sem = device->get().createSemaphore(sem_info);
-    render_finished_sem = device->get().createSemaphore(sem_info);
-    in_flight_fen = device->get().createFence(fen_info);
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        image_available_sems.push_back(device->get().createSemaphore(sem_info));
+        in_flight_fens.push_back(device->get().createFence(fen_info));
+    }
+    for(size_t i = 0; i < swapchain->get_image_count(); i++)
+    {
+        render_finished_sems.push_back(device->get().createSemaphore(sem_info));
+    }
 }
 
 }
