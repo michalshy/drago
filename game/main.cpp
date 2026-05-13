@@ -10,6 +10,13 @@
 #include "rhi/vulkan/VulkanSurface.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
+#include "renderer/Vertex.h"
+
+const std::vector<drago::renderer::Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+};
 
 static void on_framebuffer_resize(GLFWwindow* window, int width, int height) {
     auto* flag = reinterpret_cast<bool*>(glfwGetWindowUserPointer(window));

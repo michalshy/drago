@@ -17,8 +17,6 @@ VSOutput vertMain(VSInput input) {
 }
 
 [shader("fragment")]
-float4 fragMain(VSOutput inVert) : SV_Target
-{
-    float3 color = inVert.color;
-    return float4(color, 1.0);
+float4 fragMain(VSOutput vertIn) : SV_TARGET {
+    return float4(vertIn.color, 1.0);
 }

@@ -1,4 +1,5 @@
 #include "VulkanPipeline.h"
+#include "renderer/Vertex.h"
 
 #include <fstream>
 #include <vector>
@@ -30,6 +31,30 @@ static std::vector<char> read_file(const std::string& filename)
     return buffer;
 }
 
+static vk::VertexInputBindingDescription get_binding_description()
+{
+    return vk::VertexInputBindingDescription{}
+        .setBinding(0)
+        .setStride(sizeof(drago::renderer::Vertex))
+        .setInputRate(vk::VertexInputRate::eVertex);
+}
+
+static std::array<vk::VertexInputAttributeDescription, 2> get_attribute_descriptions()
+{
+    return {{
+        vk::VertexInputAttributeDescription{}
+            .setLocation(0)
+            .setBinding(0)
+            .setFormat(vk::Format::eR32G32Sfloat)
+            .setOffset(offsetof(drago::renderer::Vertex, pos)),
+        vk::VertexInputAttributeDescription{}
+            .setLocation(1)
+            .setBinding(0)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(drago::renderer::Vertex, color)),
+    }};
+}
+
 }
 
 VulkanPipeline::VulkanPipeline(
@@ -59,7 +84,12 @@ VulkanPipeline::VulkanPipeline(
     auto dynamic_state = vk::PipelineDynamicStateCreateInfo{}
         .setDynamicStates(dynamic_states);
 
-    auto vertex_input = vk::PipelineVertexInputStateCreateInfo{};
+    auto binding_desc = details::get_binding_description();
+    auto attribute_desc = details::get_attribute_descriptions();
+
+    auto vertex_input = vk::PipelineVertexInputStateCreateInfo{}
+      .setVertexBindingDescriptions(binding_desc)
+      .setVertexAttributeDescriptions(attribute_desc);
 
     auto input_assembly = vk::PipelineInputAssemblyStateCreateInfo{}
         .setTopology(vk::PrimitiveTopology::eTriangleList)
