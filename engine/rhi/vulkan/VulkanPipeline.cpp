@@ -66,6 +66,7 @@ VulkanPipeline::VulkanPipeline(
     , renderpass(renderpass)
     , swapchain(swapchain)
 {
+
     auto shader_module = create_shader_module(details::read_file(ASSETS_DIR "/shaders/compiled/base.spv"));
 
     auto vert_shader = vk::PipelineShaderStageCreateInfo{}
@@ -78,9 +79,9 @@ VulkanPipeline::VulkanPipeline(
         .setModule(shader_module)
         .setPName("fragMain");
 
-    auto shader_stages = { vert_shader, frag_shader };
+    auto shader_stages = std::array{ vert_shader, frag_shader };
 
-    auto dynamic_states = { vk::DynamicState::eViewport, vk::DynamicState::eScissor };
+    auto dynamic_states = std::array{ vk::DynamicState::eViewport, vk::DynamicState::eScissor };
     auto dynamic_state = vk::PipelineDynamicStateCreateInfo{}
         .setDynamicStates(dynamic_states);
 
@@ -94,7 +95,7 @@ VulkanPipeline::VulkanPipeline(
     auto input_assembly = vk::PipelineInputAssemblyStateCreateInfo{}
         .setTopology(vk::PrimitiveTopology::eTriangleList)
         .setPrimitiveRestartEnable(vk::False);
-
+    
     vk::Viewport viewport{0.0f, 0.0f, static_cast<float>(swapchain->get_extent().width), static_cast<float>(swapchain->get_extent().height), 0.0f, 1.0f};
     vk::Rect2D scissor{vk::Offset2D{ 0, 0 }, swapchain->get_extent()};
 
@@ -134,6 +135,8 @@ VulkanPipeline::VulkanPipeline(
         .setLogicOpEnable(vk::False)
         .setLogicOp(vk::LogicOp::eCopy)
         .setAttachments(color_blend_attachment);
+
+    // create pipeline layout
 
     auto pipeline_layout_info = vk::PipelineLayoutCreateInfo{}
     .setSetLayoutCount(0)

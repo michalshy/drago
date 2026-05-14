@@ -2,10 +2,10 @@
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <vulkan/vulkan_structs.hpp>
 #include "VulkanDevice.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
-#include "vulkan/vulkan.hpp"
 
 namespace drago::rhi
 {

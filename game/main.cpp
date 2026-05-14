@@ -10,6 +10,7 @@
 #include "rhi/vulkan/VulkanSurface.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
+#include "rhi/vulkan/VulkanVertexBuffer.h"
 #include "renderer/Vertex.h"
 
 const std::vector<drago::renderer::Vertex> vertices = {
@@ -48,12 +49,15 @@ int main() {
     drago::rhi::VulkanRenderPass renderpass(&device, &swapchain);
     spdlog::info("Renderpass OK");
 
+    drago::rhi::VulkanVertexBuffer vertexbuffer(vertices, &device);
+    spdlog::info("Vertices OK");
+
     drago::rhi::VulkanPipeline pipeline(&device, &renderpass, &swapchain);
     spdlog::info("Pipeline OK");
 
     drago::rhi::VulkanFramebuffer framebuffer(&device, &swapchain, &renderpass);
 
-    drago::rhi::VulkanCommandBuffer cmd(&device, &framebuffer, &swapchain, &renderpass, &pipeline);
+    drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &framebuffer, &swapchain, &renderpass, &pipeline);
 
     uint32_t current_frame = 0;
     while (!glfwWindowShouldClose(window)) {

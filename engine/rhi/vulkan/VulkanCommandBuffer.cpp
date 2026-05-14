@@ -2,6 +2,7 @@
 #include "rhi/vulkan/VulkanDevice.h"
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
+#include "rhi/vulkan/VulkanVertexBuffer.h"
 #include "vulkan/vulkan.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -12,12 +13,14 @@ namespace drago::rhi
 
 VulkanCommandBuffer::VulkanCommandBuffer(
     VulkanDevice* device,
+    VulkanVertexBuffer* vertexbuffer,
     VulkanFramebuffer* framebuffer,
     VulkanSwapchain* swapchain,
     VulkanRenderPass* renderpass,
     VulkanPipeline* pipeline
 )
     : device(device)
+    , vertexbuffer(vertexbuffer)
     , framebuffer(framebuffer)
     , swapchain(swapchain)
     , renderpass(renderpass)
@@ -107,6 +110,8 @@ void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
     cmd.beginRenderPass(renderpass_info, vk::SubpassContents::eInline);
 
     cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->get_pipeline());
+
+    cmd.bindVertexBuffers(0, vertexbuffer->get(), {0});
 
     auto viewport = vk::Viewport{}
         .setX(0.0f)
