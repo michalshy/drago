@@ -1,23 +1,45 @@
-add_library(engine STATIC
+set(ENGINE_COMMON_SOURCES
     core/Window.cpp
     core/EventLoop.cpp
-    rhi/vulkan/VulkanInstance.cpp
-    rhi/vulkan/VulkanRenderPass.cpp
-    rhi/vulkan/VulkanPipeline.cpp
-    rhi/vulkan/VulkanDevice.cpp
-    rhi/vulkan/VulkanSwapchain.cpp
-    rhi/vulkan/VulkanSurface.cpp
-    rhi/vulkan/VulkanFramebuffer.cpp
-    rhi/vulkan/VulkanCommandBuffer.cpp
-    rhi/vulkan/VulkanVertexBuffer.cpp
     renderer/Renderer.cpp
 )
 
-target_compile_definitions(engine PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+if(APPLE)
+    set(ENGINE_RHI_SOURCES
+        rhi/metal/MetalInstance.mm
+        rhi/metal/MetalDevice.mm
+        rhi/metal/MetalSwapchain.mm
+        rhi/metal/MetalCommandBuffer.mm
+        rhi/metal/MetalPipeline.mm
+        rhi/metal/MetalRenderPass.mm
+        rhi/metal/MetalVertexBuffer.mm
+    )
+    set(ENGINE_RHI_DEFINES DRAGO_METAL)
+    set(ENGINE_RHI_LIBS "-framework Metal" "-framework QuartzCore" "-framework Foundation")
+else()
+    set(ENGINE_RHI_SOURCES
+        rhi/vulkan/VulkanInstance.cpp
+        rhi/vulkan/VulkanRenderPass.cpp
+        rhi/vulkan/VulkanPipeline.cpp
+        rhi/vulkan/VulkanDevice.cpp
+        rhi/vulkan/VulkanSwapchain.cpp
+        rhi/vulkan/VulkanSurface.cpp
+        rhi/vulkan/VulkanFramebuffer.cpp
+        rhi/vulkan/VulkanCommandBuffer.cpp
+        rhi/vulkan/VulkanVertexBuffer.cpp
+    )
+    set(ENGINE_RHI_DEFINES DRAGO_VULKAN VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+    set(ENGINE_RHI_LIBS Vulkan::Vulkan)
+endif()
 
-target_compile_definitions(engine PRIVATE 
-    ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
+add_library(engine STATIC
+    ${ENGINE_COMMON_SOURCES}
+    ${ENGINE_RHI_SOURCES}
 )
 
+target_compile_definitions(engine PUBLIC ${ENGINE_RHI_DEFINES})
+target_compile_definitions(engine PRIVATE
+    ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
+)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(engine PUBLIC glfw glm spdlog::spdlog Vulkan::Vulkan)
+target_link_libraries(engine PUBLIC glfw glm spdlog::spdlog ${ENGINE_RHI_LIBS})

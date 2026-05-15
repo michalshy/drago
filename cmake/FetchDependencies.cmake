@@ -32,5 +32,10 @@ FetchContent_Declare(Catch2
 )
 FetchContent_MakeAvailable(Catch2)
 
-# Vulkan — systemic
-find_package(Vulkan REQUIRED)
+# RHI backend
+if(APPLE)
+    message(STATUS "Platform: macOS — using Metal backend")
+else()
+    find_package(Vulkan REQUIRED)
+    message(STATUS "Platform: using Vulkan backend")
+endif()

@@ -1,6 +1,11 @@
 #include <GLFW/glfw3.h>
 #include <cstdint>
 #include <spdlog/spdlog.h>
+#include "core/Platform.h"
+
+#ifdef DRAGO_RHI_METAL
+
+#elif DRAGO_RHI_VULKAN
 #include <vulkan/vulkan.hpp>
 #include "rhi/vulkan/VulkanCommandBuffer.h"
 #include "rhi/vulkan/VulkanFramebuffer.h"
@@ -11,6 +16,7 @@
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanVertexBuffer.h"
+#endif
 #include "renderer/Vertex.h"
 
 const std::vector<drago::renderer::Vertex> vertices = {
@@ -25,6 +31,8 @@ static void on_framebuffer_resize(GLFWwindow* window, int width, int height) {
 }
 
 int main() {
+    spdlog::info("Platform: {} | RHI: {}", DRAGO_PLATFORM_NAME, DRAGO_RHI_NAME);
+
     bool resized = false;
 
     glfwInit();
@@ -34,6 +42,7 @@ int main() {
     glfwSetWindowUserPointer(window, &resized);
     glfwSetFramebufferSizeCallback(window, on_framebuffer_resize);
 
+#if defined(DRAGO_RHI_VULKAN)
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
 
@@ -58,11 +67,13 @@ int main() {
     drago::rhi::VulkanFramebuffer framebuffer(&device, &swapchain, &renderpass);
 
     drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &framebuffer, &swapchain, &renderpass, &pipeline);
+#endif
 
     uint32_t current_frame = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
+        #if defined(DRAGO_RHI_VULKAN)
         cmd.wait_for_fence(current_frame);
         
         uint32_t idx;
@@ -96,9 +107,12 @@ int main() {
         }
     
         current_frame = (current_frame + 1) % drago::rhi::MAX_FRAMES_IN_FLIGHT;
+        #endif
     }
 
+    #if defined(DRAGO_RHI_VULKAN)
     device.wait();
+    #endif
 
     glfwDestroyWindow(window);
     glfwTerminate();
