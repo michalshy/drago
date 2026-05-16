@@ -4,7 +4,7 @@ set(ENGINE_COMMON_SOURCES
     renderer/Renderer.cpp
 )
 
-if(APPLE)
+if(RHI_BACKEND STREQUAL "metal")
     set(ENGINE_RHI_SOURCES
         rhi/metal/MetalInstance.mm
         rhi/metal/MetalDevice.mm
@@ -36,6 +36,14 @@ add_library(engine STATIC
     ${ENGINE_COMMON_SOURCES}
     ${ENGINE_RHI_SOURCES}
 )
+
+if(RHI_BACKEND STREQUAL "metal")
+    target_compile_definitions(engine PUBLIC DRAGO_RHI_NAME="Metal")
+elseif(RHI_BACKEND STREQUAL "vulkan")
+    target_compile_definitions(engine PUBLIC DRAGO_RHI_NAME="Vulkan")
+elseif(RHI_BACKEND STREQUAL "dx12")
+    target_compile_definitions(engine PUBLIC DRAGO_RHI_NAME="DX12")
+endif()
 
 target_compile_definitions(engine PUBLIC ${ENGINE_RHI_DEFINES})
 target_compile_definitions(engine PRIVATE

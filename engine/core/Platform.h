@@ -16,14 +16,6 @@
     #error "Unsupported platform"
 #endif
 
-#if defined(DRAGO_PLATFORM_MACOS)
-    #define DRAGO_RHI_METAL
-    #define DRAGO_RHI_NAME "Metal"
-#else
-    #define DRAGO_RHI_VULKAN
-    #define DRAGO_RHI_NAME "Vulkan"
-#endif
-
 #if defined(__aarch64__) || defined(_M_ARM64)
     #define DRAGO_ARCH_ARM64
 #elif defined(__x86_64__) || defined(_M_X64)

@@ -1,3 +1,5 @@
 build
 .cache
 .vscode
+assets/shaders/compiled/*.metallib
+assets/shaders/compiled/*.spv

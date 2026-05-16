@@ -32,10 +32,14 @@ FetchContent_Declare(Catch2
 )
 FetchContent_MakeAvailable(Catch2)
 
-# RHI backend
-if(APPLE)
-    message(STATUS "Platform: macOS — using Metal backend")
-else()
+option(USE_METAL "Use native Metal backend" OFF)
+
+set(RHI_BACKEND "vulkan" CACHE STRING "RHI backend: vulkan, metal, dx12")
+
+if(RHI_BACKEND STREQUAL "vulkan")
     find_package(Vulkan REQUIRED)
-    message(STATUS "Platform: using Vulkan backend")
+elseif(RHI_BACKEND STREQUAL "metal")
+    # Metal frameworks
+elseif(RHI_BACKEND STREQUAL "dx12")
+    # D3D12
 endif()

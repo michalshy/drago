@@ -20,7 +20,7 @@ function(add_shader_targets TARGET)
             list(APPEND ENTRY_ARGS -entry ${ENTRY})
         endforeach()
 
-        if(APPLE)
+        if(RHI_BACKEND STREQUAL "metal")
             set(OUTPUT ${SHADERS_DIR}/${NAME}.metallib)
             add_custom_command(
                 OUTPUT ${OUTPUT}

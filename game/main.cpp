@@ -3,9 +3,9 @@
 #include <spdlog/spdlog.h>
 #include "core/Platform.h"
 
-#ifdef DRAGO_RHI_METAL
+#ifdef DRAGO_METAL
 
-#elif DRAGO_RHI_VULKAN
+#elif DRAGO_VULKAN
 #include <vulkan/vulkan.hpp>
 #include "rhi/vulkan/VulkanCommandBuffer.h"
 #include "rhi/vulkan/VulkanFramebuffer.h"
@@ -42,7 +42,7 @@ int main() {
     glfwSetWindowUserPointer(window, &resized);
     glfwSetFramebufferSizeCallback(window, on_framebuffer_resize);
 
-#if defined(DRAGO_RHI_VULKAN)
+#if defined(DRAGO_VULKAN)
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
 
@@ -73,7 +73,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
-        #if defined(DRAGO_RHI_VULKAN)
+        #if defined(DRAGO_VULKAN)
         cmd.wait_for_fence(current_frame);
         
         uint32_t idx;
@@ -110,7 +110,7 @@ int main() {
         #endif
     }
 
-    #if defined(DRAGO_RHI_VULKAN)
+    #if defined(DRAGO_VULKAN)
     device.wait();
     #endif
 
