@@ -17,8 +17,10 @@ public:
     ~VulkanIndexBuffer();
 
     vk::Buffer get() { return index_buffer; }
+    uint32_t count() const { return index_count; }
 
 private:
+    uint32_t index_count;
     VulkanDevice* device;
 
     vk::Buffer index_buffer;

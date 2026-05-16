@@ -10,6 +10,7 @@ VulkanIndexBuffer::VulkanIndexBuffer(
     VulkanDevice* device
 )
     : device(device)
+    , index_count(static_cast<uint32_t>(indices.size()))
 {
     vk::DeviceSize buffer_size = sizeof(indices[0]) * indices.size();
 

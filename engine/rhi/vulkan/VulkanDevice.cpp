@@ -11,9 +11,22 @@
 namespace drago::rhi
 {
 
-const std::vector<const char*> DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+std::vector<const char*> get_device_extensions(vk::PhysicalDevice dev) {
+    std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+#ifdef __APPLE__
+#if DRAGO_VULKAN
+    auto available = dev.enumerateDeviceExtensionProperties();
+    for (const auto& ext : available) {
+        if (strcmp(ext.extensionName, "VK_KHR_portability_subset") == 0) {
+            extensions.push_back("VK_KHR_portability_subset");
+            break;
+        }
+
+    }
+#endif
+#endif
+    return extensions;
+}
 
 VulkanDevice::VulkanDevice(
     VulkanInstance* instance,
@@ -114,10 +127,11 @@ void VulkanDevice::create_logical_device()
 
     auto device_features = vk::PhysicalDeviceFeatures{};
 
+    auto device_extensions = get_device_extensions(physical_dev);
     auto device_info = vk::DeviceCreateInfo{}
         .setQueueCreateInfos(queue_create_infos)
         .setPEnabledFeatures(&device_features)
-        .setPEnabledExtensionNames(DEVICE_EXTENSIONS);
+        .setPEnabledExtensionNames(device_extensions);
 
     dev = physical_dev.createDevice(device_info);
 
@@ -143,7 +157,8 @@ bool VulkanDevice::is_device_suitable(vk::PhysicalDevice dev)
 bool VulkanDevice::check_extension_support(vk::PhysicalDevice dev) {
     auto extensions = dev.enumerateDeviceExtensionProperties();
 
-    std::set<std::string> required(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
+    auto device_extensions = get_device_extensions(dev);
+    std::set<std::string> required(device_extensions.begin(), device_extensions.end());
 
     for(const auto& extension: extensions) {
         required.erase(extension.extensionName);

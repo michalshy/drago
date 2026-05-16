@@ -43,10 +43,22 @@ void VulkanInstance::create_instance() {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
+#ifdef __APPLE__
+#if DRAGO_VULKAN
+    extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
+#endif
+
     auto create_info = vk::InstanceCreateInfo{}
         .setPApplicationInfo(&app_info)
         .setEnabledExtensionCount((uint32_t)extensions.size())
         .setPpEnabledExtensionNames(extensions.data());
+
+#ifdef __APPLE__
+#if DRAGO_VULKAN
+    create_info.setFlags(vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR);
+#endif
+#endif
 
     if (validation) {
         create_info.enabledLayerCount   = (uint32_t)validation_layers.size();

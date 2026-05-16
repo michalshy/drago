@@ -133,7 +133,7 @@ void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
 
     cmd.setScissor(0, scissor);
 
-    cmd.drawIndexed(6, 1, 0, 0, 0);
+    cmd.drawIndexed(indexbuffer->count(), 1, 0, 0, 0);
 
     cmd.endRenderPass();
     cmd.end();
