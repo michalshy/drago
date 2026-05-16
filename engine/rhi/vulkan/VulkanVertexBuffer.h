@@ -2,6 +2,7 @@
 
 #include "renderer/Vertex.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "vulkan/vulkan.hpp"
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>

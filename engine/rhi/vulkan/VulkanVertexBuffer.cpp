@@ -1,29 +1,15 @@
 #include "VulkanVertexBuffer.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "rhi/vulkan/VulkanUtils.h"
+#include "vulkan/vulkan.hpp"
 
-#include <stdexcept>
+#include <cstddef>
+#include <cstring>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
 namespace drago::rhi
 {
-
-namespace details
-{
-    uint32_t find_memory_type(uint32_t filter, vk::MemoryPropertyFlags properties, VulkanDevice* dev) {
-        auto mem_properties = dev->get_physical().getMemoryProperties();
-
-        for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++)
-        {
-            if ((filter & (1 << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties) == properties)
-            {
-                return i;
-            }
-        }
-
-        throw std::runtime_error("no suitable memory type!");
-    }
-}
 
 VulkanVertexBuffer::VulkanVertexBuffer(
     const std::vector<renderer::Vertex>& vertices, 
@@ -31,28 +17,37 @@ VulkanVertexBuffer::VulkanVertexBuffer(
 )
     : device(device)
 {
-    auto buffer_info = vk::BufferCreateInfo{}
-        .setSize(sizeof(vertices[0]) * vertices.size())
-        .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
-        .setSharingMode(vk::SharingMode::eExclusive);
+    vk::DeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
 
-    vertexbuffer = device->get().createBuffer(buffer_info);
+    vk::Buffer stagingbuffer;
+    vk::DeviceMemory staging_mem;
 
-    auto mem_req = device->get().getBufferMemoryRequirements(vertexbuffer);
-    auto mem_alloc_info = vk::MemoryAllocateInfo{}
-        .setAllocationSize(mem_req.size)
-        .setMemoryTypeIndex(details::find_memory_type(
-            mem_req.memoryTypeBits, 
-            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, 
-            device
-        ));
+    create_buffer(
+        device, 
+        buffer_size, 
+        vk::BufferUsageFlagBits::eTransferSrc, 
+        vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible, 
+        stagingbuffer, 
+        staging_mem);
 
-    vertexbuffer_mem = device->get().allocateMemory(mem_alloc_info);
-    device->get().bindBufferMemory(vertexbuffer, vertexbuffer_mem, 0);
+    
+    void* data = device->get().mapMemory(staging_mem, 0, buffer_size);
+    memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
+    device->get().unmapMemory(staging_mem);
 
-    void* data = device->get().mapMemory(vertexbuffer_mem, 0, buffer_info.size);
-    memcpy(data, vertices.data(), buffer_info.size);
-    device->get().unmapMemory(vertexbuffer_mem);
+    create_buffer(
+        device, 
+        buffer_size, 
+        vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, 
+        vk::MemoryPropertyFlagBits::eDeviceLocal, 
+        vertexbuffer, 
+        vertexbuffer_mem
+    );
+
+    copy_buffer(device, stagingbuffer, vertexbuffer, buffer_size);
+
+    device->get().destroyBuffer(stagingbuffer);
+    device->get().freeMemory(staging_mem);
 }
 
 VulkanVertexBuffer::~VulkanVertexBuffer()

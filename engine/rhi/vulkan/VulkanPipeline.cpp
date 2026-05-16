@@ -169,6 +169,8 @@ VulkanPipeline::VulkanPipeline(
     {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
+
+    device->get().destroyShaderModule(shader_module);
 }
 
 VulkanPipeline::~VulkanPipeline()
