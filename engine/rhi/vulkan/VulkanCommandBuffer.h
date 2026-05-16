@@ -6,6 +6,7 @@
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanVertexBuffer.h"
+#include "rhi/vulkan/VulkanIndexBuffer.h"
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -22,6 +23,7 @@ public:
     VulkanCommandBuffer(
         VulkanDevice* device,
         VulkanVertexBuffer* vertexbuffer,
+        VulkanIndexBuffer* indexbuffer,
         VulkanFramebuffer* framebuffer,
         VulkanSwapchain* swapchain,
         VulkanRenderPass* renderpass,
@@ -43,6 +45,7 @@ private:
     // refs
     VulkanDevice* device;
     VulkanVertexBuffer* vertexbuffer;
+    VulkanIndexBuffer* indexbuffer;
     VulkanFramebuffer* framebuffer;
     VulkanSwapchain* swapchain;
     VulkanRenderPass* renderpass;

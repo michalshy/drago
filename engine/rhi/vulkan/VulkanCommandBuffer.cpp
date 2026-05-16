@@ -1,5 +1,6 @@
 #include "VulkanCommandBuffer.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "rhi/vulkan/VulkanIndexBuffer.h"
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanVertexBuffer.h"
@@ -14,6 +15,7 @@ namespace drago::rhi
 VulkanCommandBuffer::VulkanCommandBuffer(
     VulkanDevice* device,
     VulkanVertexBuffer* vertexbuffer,
+    VulkanIndexBuffer* indexbuffer,
     VulkanFramebuffer* framebuffer,
     VulkanSwapchain* swapchain,
     VulkanRenderPass* renderpass,
@@ -21,6 +23,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(
 )
     : device(device)
     , vertexbuffer(vertexbuffer)
+    , indexbuffer(indexbuffer)
     , framebuffer(framebuffer)
     , swapchain(swapchain)
     , renderpass(renderpass)
@@ -112,6 +115,7 @@ void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
     cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->get_pipeline());
 
     cmd.bindVertexBuffers(0, vertexbuffer->get(), {0});
+    cmd.bindIndexBuffer(indexbuffer->get(), 0, vk::IndexType::eUint16);
 
     auto viewport = vk::Viewport{}
         .setX(0.0f)
@@ -129,7 +133,7 @@ void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
 
     cmd.setScissor(0, scissor);
 
-    cmd.draw(3, 1, 0, 0);
+    cmd.drawIndexed(6, 1, 0, 0, 0);
 
     cmd.endRenderPass();
     cmd.end();

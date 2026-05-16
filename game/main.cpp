@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <spdlog/spdlog.h>
 #include "core/Platform.h"
+#include "rhi/vulkan/VulkanIndexBuffer.h"
 
 #ifdef DRAGO_METAL
 
@@ -20,9 +21,14 @@
 #include "renderer/Vertex.h"
 
 const std::vector<drago::renderer::Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0
 };
 
 static void on_framebuffer_resize(GLFWwindow* window, int width, int height) {
@@ -61,12 +67,17 @@ int main() {
     drago::rhi::VulkanVertexBuffer vertexbuffer(vertices, &device);
     spdlog::info("Vertices OK");
 
+    drago::rhi::VulkanIndexBuffer indexbuffer(indices, &device);
+    spdlog::info("Inidces OK");
+
     drago::rhi::VulkanPipeline pipeline(&device, &renderpass, &swapchain);
     spdlog::info("Pipeline OK");
 
     drago::rhi::VulkanFramebuffer framebuffer(&device, &swapchain, &renderpass);
+    spdlog::info("Framebuffer OK");
 
-    drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &framebuffer, &swapchain, &renderpass, &pipeline);
+    drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &indexbuffer, &framebuffer, &swapchain, &renderpass, &pipeline);
+    spdlog::info("CommandBuffer OK");
 #endif
 
     uint32_t current_frame = 0;
