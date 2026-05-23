@@ -1,8 +1,14 @@
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
 #include <cstdint>
 #include <spdlog/spdlog.h>
 #include "core/Platform.h"
+#include "glm/ext/matrix_transform.hpp"
+#include "renderer/Types.h"
 #include "rhi/vulkan/VulkanIndexBuffer.h"
+#include "rhi/vulkan/VulkanUniformBuffer.h"
 
 #ifdef DRAGO_METAL
 
@@ -17,6 +23,7 @@
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanVertexBuffer.h"
+#include "rhi/vulkan/VulkanUtils.h"
 #endif
 #include "renderer/Vertex.h"
 
@@ -35,6 +42,25 @@ static void on_framebuffer_resize(GLFWwindow* window, int width, int height) {
     auto* flag = reinterpret_cast<bool*>(glfwGetWindowUserPointer(window));
     *flag = true;
 }
+
+#if defined(DRAGO_VULKAN)
+
+void update_ubo(uint32_t img_idx, drago::rhi::VulkanUniformBuffer& buff)
+{
+    static auto start_time = std::chrono::high_resolution_clock::now();
+
+    auto current = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(current - start_time).count();
+
+    drago::renderer::UniformBufferObject ubo{};
+    ubo.model = rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj[1][1] *= -1;
+
+    buff.update(img_idx, ubo);
+}
+
+#endif
 
 int main() {
     spdlog::info("Platform: {} | RHI: {}", DRAGO_PLATFORM_NAME, DRAGO_RHI_NAME);
@@ -68,7 +94,10 @@ int main() {
     spdlog::info("Vertices OK");
 
     drago::rhi::VulkanIndexBuffer indexbuffer(indices, &device);
-    spdlog::info("Inidces OK");
+    spdlog::info("Indices OK");
+
+    drago::rhi::VulkanUniformBuffer uniformbuffer(&device);
+    spdlog::info("Uniform OK");
 
     drago::rhi::VulkanPipeline pipeline(&device, &renderpass, &swapchain);
     spdlog::info("Pipeline OK");
@@ -118,6 +147,8 @@ int main() {
         }
     
         current_frame = (current_frame + 1) % drago::rhi::MAX_FRAMES_IN_FLIGHT;
+
+        update_ubo(current_frame, uniformbuffer);
         #endif
     }
 

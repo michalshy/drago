@@ -1,7 +1,9 @@
 #pragma once
 
+#include "renderer/Types.h"
 #include "rhi/vulkan/VulkanDevice.h"
 #include "vulkan/vulkan.hpp"
+#include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
@@ -17,6 +19,7 @@ public:
     ~VulkanUniformBuffer();
 
     std::vector<vk::Buffer>& get() { return buffers; }
+    void update(uint32_t img_idx, renderer::UniformBufferObject& obj);
 private:
     VulkanDevice* device;
 

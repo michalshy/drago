@@ -1,6 +1,7 @@
 #include "VulkanUniformBuffer.h"
 #include "VulkanUtils.h"
 #include "renderer/Types.h"
+#include <cstring>
 
 namespace drago::rhi
 {
@@ -34,5 +35,11 @@ VulkanUniformBuffer::~VulkanUniformBuffer()
 {
     
 }
+
+void VulkanUniformBuffer::update(uint32_t img_idx, renderer::UniformBufferObject& obj)
+{
+    memcpy(buffers_mapped[img_idx], &obj, sizeof(obj));
+}
+
 
 }

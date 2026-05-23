@@ -29,6 +29,8 @@ else()
         rhi/vulkan/VulkanVertexBuffer.cpp
         rhi/vulkan/VulkanUtils.cpp
         rhi/vulkan/VulkanIndexBuffer.cpp
+        rhi/vulkan/VulkanUniformBuffer.cpp
+        rhi/vulkan/VulkanDescriptorSet.cpp
     )
     set(ENGINE_RHI_DEFINES DRAGO_VULKAN VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
     set(ENGINE_RHI_LIBS Vulkan::Vulkan)
