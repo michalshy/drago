@@ -6,6 +6,7 @@
 #include "VulkanDevice.h"
 #include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
+#include "vulkan/vulkan.hpp"
 
 namespace drago::rhi
 {
@@ -26,10 +27,13 @@ private:
     VulkanRenderPass* renderpass;
     VulkanSwapchain* swapchain;
 
+    vk::DescriptorSetLayout descriptor_layout;
     vk::PipelineLayout pipeline_layout;
 
     vk::Pipeline graphics_pipeline;
 
+    void create_descriptor_layout();
+    void create_graphics_pipeline();
     vk::ShaderModule create_shader_module(const std::vector<char>& code);
 };
 

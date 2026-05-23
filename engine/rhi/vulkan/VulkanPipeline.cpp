@@ -66,7 +66,35 @@ VulkanPipeline::VulkanPipeline(
     , renderpass(renderpass)
     , swapchain(swapchain)
 {
+    create_descriptor_layout();
+    create_graphics_pipeline();
+}
 
+VulkanPipeline::~VulkanPipeline()
+{
+    device->get().destroyDescriptorSetLayout(descriptor_layout);
+    device->get().destroyPipeline(graphics_pipeline);
+    device->get().destroyPipelineLayout(pipeline_layout);
+}
+
+void VulkanPipeline::create_descriptor_layout()
+{
+    auto ubo_layout = vk::DescriptorSetLayoutBinding{}
+        .setBinding(0)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+    auto layout_info = vk::DescriptorSetLayoutCreateInfo{}
+        .setBindingCount(1)
+        .setBindings(ubo_layout);
+
+    descriptor_layout = device->get().createDescriptorSetLayout(layout_info);
+
+}
+
+void VulkanPipeline::create_graphics_pipeline()
+{
     auto shader_module = create_shader_module(details::read_file(ASSETS_DIR "/shaders/compiled/base.spv"));
 
     auto vert_shader = vk::PipelineShaderStageCreateInfo{}
@@ -139,7 +167,8 @@ VulkanPipeline::VulkanPipeline(
     // create pipeline layout
 
     auto pipeline_layout_info = vk::PipelineLayoutCreateInfo{}
-    .setSetLayoutCount(0)
+    .setSetLayoutCount(1)
+    .setSetLayouts(descriptor_layout)
     .setPushConstantRangeCount(0);
 
     pipeline_layout = device->get().createPipelineLayout(pipeline_layout_info);
@@ -171,12 +200,6 @@ VulkanPipeline::VulkanPipeline(
     }
 
     device->get().destroyShaderModule(shader_module);
-}
-
-VulkanPipeline::~VulkanPipeline()
-{
-    device->get().destroyPipeline(graphics_pipeline);
-    device->get().destroyPipelineLayout(pipeline_layout);
 }
 
 [[nodiscard]] vk::ShaderModule VulkanPipeline::create_shader_module(const std::vector<char>& code)

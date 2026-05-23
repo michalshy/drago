@@ -7,6 +7,8 @@ namespace drago::rhi
 {
     class VulkanDevice;
 
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+
     void create_buffer(
         VulkanDevice* device,
         vk::DeviceSize size,
@@ -15,7 +17,6 @@ namespace drago::rhi
         vk::Buffer& buffer,
         vk::DeviceMemory& buffer_memory 
     );
-
     void copy_buffer(
         VulkanDevice* device,
         vk::Buffer src,

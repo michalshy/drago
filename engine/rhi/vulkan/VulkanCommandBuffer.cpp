@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vulkan/vulkan_core.h>
+#include "VulkanUtils.h"
 
 namespace drago::rhi
 {
