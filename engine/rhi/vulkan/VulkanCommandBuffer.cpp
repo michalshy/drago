@@ -18,6 +18,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(
     VulkanVertexBuffer* vertexbuffer,
     VulkanIndexBuffer* indexbuffer,
     VulkanFramebuffer* framebuffer,
+    VulkanDescriptorSet* desc_set,
     VulkanSwapchain* swapchain,
     VulkanRenderPass* renderpass,
     VulkanPipeline* pipeline
@@ -26,6 +27,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(
     , vertexbuffer(vertexbuffer)
     , indexbuffer(indexbuffer)
     , framebuffer(framebuffer)
+    , desc_set(desc_set)
     , swapchain(swapchain)
     , renderpass(renderpass)
     , pipeline(pipeline)
@@ -134,6 +136,7 @@ void VulkanCommandBuffer::record(uint32_t img_idx, uint32_t frame_idx)
 
     cmd.setScissor(0, scissor);
 
+    buffers[frame_idx].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline->get_layout(), 0, desc_set->get_sets()[frame_idx], nullptr);
     cmd.drawIndexed(indexbuffer->count(), 1, 0, 0, 0);
 
     cmd.endRenderPass();

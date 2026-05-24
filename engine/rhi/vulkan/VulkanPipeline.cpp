@@ -60,37 +60,21 @@ static std::array<vk::VertexInputAttributeDescription, 2> get_attribute_descript
 VulkanPipeline::VulkanPipeline(
     VulkanDevice* device,
     VulkanRenderPass* renderpass,
-    VulkanSwapchain* swapchain
+    VulkanSwapchain* swapchain,
+    VulkanDescriptorSet* descriptor_set
 )
     : device(device)
     , renderpass(renderpass)
     , swapchain(swapchain)
+    , descriptor_set(descriptor_set)
 {
-    create_descriptor_layout();
     create_graphics_pipeline();
 }
 
 VulkanPipeline::~VulkanPipeline()
 {
-    device->get().destroyDescriptorSetLayout(descriptor_layout);
     device->get().destroyPipeline(graphics_pipeline);
     device->get().destroyPipelineLayout(pipeline_layout);
-}
-
-void VulkanPipeline::create_descriptor_layout()
-{
-    auto ubo_layout = vk::DescriptorSetLayoutBinding{}
-        .setBinding(0)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(1)
-        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
-
-    auto layout_info = vk::DescriptorSetLayoutCreateInfo{}
-        .setBindingCount(1)
-        .setBindings(ubo_layout);
-
-    descriptor_layout = device->get().createDescriptorSetLayout(layout_info);
-
 }
 
 void VulkanPipeline::create_graphics_pipeline()
@@ -136,7 +120,7 @@ void VulkanPipeline::create_graphics_pipeline()
         .setRasterizerDiscardEnable(vk::False)
         .setPolygonMode(vk::PolygonMode::eFill)
         .setCullMode(vk::CullModeFlagBits::eBack)
-        .setFrontFace(vk::FrontFace::eClockwise)
+        .setFrontFace(vk::FrontFace::eCounterClockwise)
         .setDepthBiasEnable(vk::False)
         .setLineWidth(1.0f);
 
@@ -166,9 +150,10 @@ void VulkanPipeline::create_graphics_pipeline()
 
     // create pipeline layout
 
+    auto layout = descriptor_set->get_layout();
     auto pipeline_layout_info = vk::PipelineLayoutCreateInfo{}
     .setSetLayoutCount(1)
-    .setSetLayouts(descriptor_layout)
+    .setSetLayouts(layout)
     .setPushConstantRangeCount(0);
 
     pipeline_layout = device->get().createPipelineLayout(pipeline_layout_info);

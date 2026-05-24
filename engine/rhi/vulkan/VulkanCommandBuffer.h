@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rhi/vulkan/VulkanDescriptorSet.h"
 #include "rhi/vulkan/VulkanDevice.h"
 #include "rhi/vulkan/VulkanFramebuffer.h"
 #include "rhi/vulkan/VulkanPipeline.h"
@@ -23,6 +24,7 @@ public:
         VulkanVertexBuffer* vertexbuffer,
         VulkanIndexBuffer* indexbuffer,
         VulkanFramebuffer* framebuffer,
+        VulkanDescriptorSet* desc_set,
         VulkanSwapchain* swapchain,
         VulkanRenderPass* renderpass,
         VulkanPipeline* pipeline
@@ -45,6 +47,7 @@ private:
     VulkanVertexBuffer* vertexbuffer;
     VulkanIndexBuffer* indexbuffer;
     VulkanFramebuffer* framebuffer;
+    VulkanDescriptorSet* desc_set;
     VulkanSwapchain* swapchain;
     VulkanRenderPass* renderpass;
     VulkanPipeline* pipeline;
