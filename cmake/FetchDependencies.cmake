@@ -32,6 +32,10 @@ FetchContent_Declare(Catch2
 )
 FetchContent_MakeAvailable(Catch2)
 
+# STB Image
+FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git)
+FetchContent_MakeAvailable(stb)
+
 option(USE_METAL "Use native Metal backend" OFF)
 
 set(RHI_BACKEND "vulkan" CACHE STRING "RHI backend: vulkan, metal, dx12")

@@ -2,6 +2,7 @@ set(ENGINE_COMMON_SOURCES
     core/Window.cpp
     core/EventLoop.cpp
     renderer/Renderer.cpp
+    renderer/Image.cpp
 )
 
 if(RHI_BACKEND STREQUAL "metal")
@@ -31,6 +32,7 @@ else()
         rhi/vulkan/VulkanIndexBuffer.cpp
         rhi/vulkan/VulkanUniformBuffer.cpp
         rhi/vulkan/VulkanDescriptorSet.cpp
+        rhi/vulkan/VulkanTexture.cpp
     )
     set(ENGINE_RHI_DEFINES DRAGO_VULKAN VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
     set(ENGINE_RHI_LIBS Vulkan::Vulkan)
@@ -53,5 +55,5 @@ target_compile_definitions(engine PUBLIC ${ENGINE_RHI_DEFINES})
 target_compile_definitions(engine PRIVATE
     ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
 )
-target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${stb_SOURCE_DIR})
 target_link_libraries(engine PUBLIC glfw glm spdlog::spdlog ${ENGINE_RHI_LIBS})
