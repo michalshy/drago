@@ -1,6 +1,7 @@
 #include "VulkanTexture.h"
 #include "rhi/vulkan/VulkanUtils.h"
 #include <cstdint>
+#include <tuple>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
@@ -34,16 +35,14 @@ VulkanTexture::VulkanTexture(
     memcpy(data, img.data.data(), img_size);
     device->get().unmapMemory(staging_mem);
 
-    auto img_info = vk::ImageCreateInfo{}
-        .setImageType(vk::ImageType::e2D)
-        .setFormat(swapchain->get_format().format)
-        .setExtent({static_cast<uint32_t>(img.width), static_cast<uint32_t>(img.height), 1})
-        .setMipLevels(1)
-        .setArrayLayers(1)
-        .setSamples(vk::SampleCountFlagBits::e1)
-        .setTiling(vk::ImageTiling::eOptimal)
-        .setUsage(vk::ImageUsageFlagBits::eSampled)
-        .setSharingMode(vk::SharingMode::eExclusive);
+    std::tie(tex_img, tex_mem) = create_image(
+        device, 
+        img.width,
+        img.height, 
+        vk::Format::eR8G8B8A8Srgb, 
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst, 
+        vk::MemoryPropertyFlagBits::eDeviceLocal);
 
     device->get().destroyBuffer(staging_buffer);
     device->get().freeMemory(staging_mem);
@@ -51,7 +50,8 @@ VulkanTexture::VulkanTexture(
 
 VulkanTexture::~VulkanTexture()
 {
-
+    device->get().destroyImage(tex_img);
+    device->get().freeMemory(tex_mem);
 }
 
 }

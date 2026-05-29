@@ -1,6 +1,8 @@
 #include "Image.h"
 
 #include <cstdint>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <vector>
 

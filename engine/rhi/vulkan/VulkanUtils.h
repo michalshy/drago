@@ -1,6 +1,8 @@
 #pragma once
 
 #include "vulkan/vulkan.hpp"
+#include <cstdint>
+#include <utility>
 #include <vulkan/vulkan.hpp>
 
 namespace drago::rhi
@@ -22,5 +24,14 @@ namespace drago::rhi
         vk::Buffer src,
         vk::Buffer dst,
         vk::DeviceSize size
+    );
+    std::pair<vk::Image, vk::DeviceMemory> create_image(
+        VulkanDevice* device,
+        uint32_t width,
+        uint32_t height,
+        vk::Format format,
+        vk::ImageTiling tiling,
+        vk::ImageUsageFlags usage,
+        vk::MemoryPropertyFlags props
     );
 }

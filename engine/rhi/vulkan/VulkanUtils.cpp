@@ -28,8 +28,7 @@ namespace drago::rhi
         vk::MemoryPropertyFlags properties,
         vk::Buffer& buffer,
         vk::DeviceMemory& buffer_memory 
-    ) 
-    {
+    ) {
             vk::BufferCreateInfo buffer_info = vk::BufferCreateInfo{}
         .setSize(size)
         .setUsage(usage)
@@ -54,8 +53,7 @@ namespace drago::rhi
         vk::Buffer src,
         vk::Buffer dst,
         vk::DeviceSize size
-    )
-    {
+    ) {
         QueueFamilyIndices indices = device->find_queue_families(device->get_physical());
 
         auto pool_info = vk::CommandPoolCreateInfo{}
@@ -93,5 +91,38 @@ namespace drago::rhi
 
         device->get().freeCommandBuffers(pool, command_buffer);
         device->get().destroyCommandPool(pool);
+    }
+
+    std::pair<vk::Image, vk::DeviceMemory> create_image(
+        VulkanDevice* device,
+        uint32_t width,
+        uint32_t height,
+        vk::Format format,
+        vk::ImageTiling tiling,
+        vk::ImageUsageFlags usage,
+        vk::MemoryPropertyFlags props
+    ) {
+        auto img_info = vk::ImageCreateInfo{}
+            .setImageType(vk::ImageType::e2D)
+            .setFormat(format)
+            .setExtent({static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1})
+            .setMipLevels(1)
+            .setArrayLayers(1)
+            .setSamples(vk::SampleCountFlagBits::e1)
+            .setTiling(tiling)
+            .setUsage(usage)
+            .setSharingMode(vk::SharingMode::eExclusive);
+
+        vk::Image img = device->get().createImage(img_info);
+
+        vk::MemoryRequirements reqs = device->get().getImageMemoryRequirements(img);
+        auto alloc_info = vk::MemoryAllocateInfo{}
+            .setAllocationSize(reqs.size)
+            .setMemoryTypeIndex(details::find_memory_type(reqs.memoryTypeBits, props, device));
+            
+        vk::DeviceMemory image_memory = device->get().allocateMemory(alloc_info);
+        device->get().bindImageMemory(img, image_memory, 0);
+
+        return {std::move(img), std::move(image_memory)};
     }
 }
