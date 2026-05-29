@@ -6,9 +6,11 @@
 #include <spdlog/spdlog.h>
 #include "core/Platform.h"
 #include "glm/ext/matrix_transform.hpp"
+#include "renderer/Image.h"
 #include "renderer/Types.h"
 #include "rhi/vulkan/VulkanDescriptorSet.h"
 #include "rhi/vulkan/VulkanIndexBuffer.h"
+#include "rhi/vulkan/VulkanTexture.h"
 #include "rhi/vulkan/VulkanUniformBuffer.h"
 
 #ifdef DRAGO_METAL
@@ -79,6 +81,8 @@ int main() {
     glfwSetWindowUserPointer(window, &resized);
     glfwSetFramebufferSizeCallback(window, on_framebuffer_resize);
 
+    auto img = drago::renderer::Image(ASSETS_DIR "/textures/texture.jpg");
+
 #if defined(DRAGO_VULKAN)
     drago::rhi::VulkanInstance instance(true);
     spdlog::info("Init OK");
@@ -115,6 +119,8 @@ int main() {
 
     drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &indexbuffer, &framebuffer, &descriptor_set, &swapchain, &renderpass, &pipeline);
     spdlog::info("CommandBuffer OK");
+
+    drago::rhi::VulkanTexture tex(img, &device, &swapchain);
 #endif
 
     uint32_t current_frame = 0;
