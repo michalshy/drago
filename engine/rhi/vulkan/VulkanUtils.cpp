@@ -213,4 +213,24 @@ void transition_img_layout(
     buffer.pipelineBarrier(src_stage, dst_stage, {}, {}, {}, barrier);
 }
 
+vk::ImageView create_image_view(
+    VulkanDevice* device,
+    vk::Image const& img,
+    vk::Format format
+) {
+    auto view_info = vk::ImageViewCreateInfo{}
+        .setImage(img)
+        .setViewType(vk::ImageViewType::e2D)
+        .setFormat(format)
+        .setSubresourceRange(
+            vk::ImageSubresourceRange{}
+                .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                .setBaseArrayLayer(0)
+                .setLayerCount(1)
+                .setBaseMipLevel(0)
+                .setLevelCount(1)
+        );
+    return device->get().createImageView(view_info);
+}
+
 }

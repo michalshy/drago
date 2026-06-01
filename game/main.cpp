@@ -120,7 +120,7 @@ int main() {
     drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &indexbuffer, &framebuffer, &descriptor_set, &swapchain, &renderpass, &pipeline);
     spdlog::info("CommandBuffer OK");
 
-    drago::rhi::VulkanTexture tex(img, &device, &swapchain);
+    drago::rhi::VulkanTexture tex(img, &device);
 #endif
 
     uint32_t current_frame = 0;

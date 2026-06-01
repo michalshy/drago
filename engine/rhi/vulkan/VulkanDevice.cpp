@@ -28,6 +28,15 @@ std::vector<const char*> get_device_extensions(vk::PhysicalDevice dev) {
     return extensions;
 }
 
+vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> features{
+    vk::PhysicalDeviceFeatures2{}.setFeatures(
+        vk::PhysicalDeviceFeatures{}.setSamplerAnisotropy(true)
+    ),
+    vk::PhysicalDeviceVulkan13Features{}.setSynchronization2(true).setDynamicRendering(true),
+    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{}.setExtendedDynamicState(true)
+};
+
+
 VulkanDevice::VulkanDevice(
     VulkanInstance* instance,
     VulkanSurface* surface
@@ -125,12 +134,10 @@ void VulkanDevice::create_logical_device()
         );
     }
 
-    auto device_features = vk::PhysicalDeviceFeatures{};
-
     auto device_extensions = get_device_extensions(physical_dev);
     auto device_info = vk::DeviceCreateInfo{}
         .setQueueCreateInfos(queue_create_infos)
-        .setPEnabledFeatures(&device_features)
+        .setPNext(&features.get<vk::PhysicalDeviceFeatures2>())
         .setPEnabledExtensionNames(device_extensions);
 
     dev = physical_dev.createDevice(device_info);
@@ -151,7 +158,22 @@ bool VulkanDevice::is_device_suitable(vk::PhysicalDevice dev)
         swapchain_fit = !details.formats.empty() && !details.present_modes.empty();
     }
 
-    return indices.is_complete() && ex_support && swapchain_fit;
+    auto chain = dev.getFeatures2<
+        vk::PhysicalDeviceFeatures2,
+        vk::PhysicalDeviceVulkan13Features,
+        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT
+        >();
+
+    auto& base     = chain.get<vk::PhysicalDeviceFeatures2>();
+    auto& vk13     = chain.get<vk::PhysicalDeviceVulkan13Features>();
+    auto& dynstate = chain.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
+
+    bool features_ok = base.features.samplerAnisotropy
+        && vk13.synchronization2
+        && vk13.dynamicRendering
+        && dynstate.extendedDynamicState;
+
+    return indices.is_complete() && ex_support && swapchain_fit && features_ok;
 }
 
 bool VulkanDevice::check_extension_support(vk::PhysicalDevice dev) {

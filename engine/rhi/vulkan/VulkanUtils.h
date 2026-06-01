@@ -62,4 +62,10 @@ namespace drago::rhi
         vk::ImageLayout old_layout,
         vk::ImageLayout new_layout
     );
+
+    vk::ImageView create_image_view(
+        VulkanDevice* device,
+        vk::Image const& img,
+        vk::Format format
+    );
 }

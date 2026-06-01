@@ -2,7 +2,6 @@
 
 #include "renderer/Image.h"
 #include "rhi/vulkan/VulkanDevice.h"
-#include "rhi/vulkan/VulkanSwapchain.h"
 namespace drago::rhi
 {
 
@@ -12,8 +11,7 @@ class VulkanTexture
 public:
     VulkanTexture(
         renderer::Image& img,
-        VulkanDevice* device,
-        VulkanSwapchain* swapchain
+        VulkanDevice* device
     );
     ~VulkanTexture();
 
@@ -23,6 +21,9 @@ private:
 
     vk::Image tex_img;
     vk::DeviceMemory tex_mem;
+
+    vk::ImageView tex_view;
+    vk::Sampler sampler;
 };
 
 }

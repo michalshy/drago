@@ -1,4 +1,5 @@
 #include "VulkanTexture.h"
+#include "rhi/vulkan/VulkanPipeline.h"
 #include "rhi/vulkan/VulkanUtils.h"
 #include <cstdint>
 #include <tuple>
@@ -11,8 +12,7 @@ namespace drago::rhi
 
 VulkanTexture::VulkanTexture(
     renderer::Image& img,
-    VulkanDevice* device,
-    VulkanSwapchain* swapchain
+    VulkanDevice* device
 )
     : img(img)
     , device(device)
@@ -35,6 +35,8 @@ VulkanTexture::VulkanTexture(
     memcpy(data, img.data.data(), img_size);
     device->get().unmapMemory(staging_mem);
 
+
+
     std::tie(tex_img, tex_mem) = create_image(
         device, 
         img.width,
@@ -53,10 +55,37 @@ VulkanTexture::VulkanTexture(
 
     device->get().destroyBuffer(staging_buffer);
     device->get().freeMemory(staging_mem);
+
+    tex_view = create_image_view(device, tex_img, vk::Format::eR8G8B8A8Srgb);
+
+    vk::PhysicalDeviceProperties props = device->get_physical().getProperties();
+    auto sampler_info = vk::SamplerCreateInfo{}
+        .setMagFilter(vk::Filter::eLinear)
+        .setMinFilter(vk::Filter::eLinear)
+        .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+        .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+        .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+        .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+        .setAnisotropyEnable(vk::True)
+        .setMaxAnisotropy(props.limits.maxSamplerAnisotropy)
+        .setCompareEnable(vk::False)
+        .setCompareOp(vk::CompareOp::eAlways);
+
+    sampler_info.borderColor = vk::BorderColor::eIntOpaqueBlack;
+    sampler_info.unnormalizedCoordinates = vk::False;
+    sampler_info.mipmapMode = vk::SamplerMipmapMode::eLinear;
+    sampler_info.mipLodBias = 0.0f;
+    sampler_info.minLod = 0.0f;
+    sampler_info.maxLod = 0.0f;
+
+    sampler = device->get().createSampler(sampler_info);
 }
 
 VulkanTexture::~VulkanTexture()
 {
+    device->get().destroySampler(sampler);
+    device->get().destroyImageView(tex_view);
+
     device->get().destroyImage(tex_img);
     device->get().freeMemory(tex_mem);
 }

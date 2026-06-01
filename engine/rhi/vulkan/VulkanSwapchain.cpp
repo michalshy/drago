@@ -2,6 +2,7 @@
 #include "GLFW/glfw3.h"
 #include "rhi/vulkan/VulkanDevice.h"
 #include "rhi/vulkan/VulkanSurface.h"
+#include "rhi/vulkan/VulkanUtils.h"
 #include "vulkan/vulkan.hpp"
 #include <cstdint>
 #include <limits>
@@ -113,23 +114,9 @@ namespace drago::rhi
     void VulkanSwapchain::create_image_views() 
     {
         image_views.resize(images.size());
-
-        auto sub = vk::ImageSubresourceRange{}
-            .setAspectMask(vk::ImageAspectFlagBits::eColor)
-            .setBaseMipLevel(0)
-            .setLevelCount(1)
-            .setBaseArrayLayer(0)
-            .setLayerCount(1);
-
         for (size_t i = 0; i < images.size(); ++i) {
-            auto create_info = vk::ImageViewCreateInfo{}
-                .setImage(images[i])
-                .setViewType(vk::ImageViewType::e2D)
-                .setFormat(format.format)
-                .setComponents(vk::ComponentSwizzle::eIdentity)
-                .setSubresourceRange(sub);
 
-            image_views[i] = device->get().createImageView(create_info);
+            image_views[i] = create_image_view(device, images[i], format.format);
             if(!image_views[i]) {
                 throw std::runtime_error("failed to create image view");
             }
