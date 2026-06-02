@@ -31,10 +31,10 @@
 #include "renderer/Vertex.h"
 
 const std::vector<drago::renderer::Vertex> vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
 const std::vector<uint16_t> indices = {
@@ -108,7 +108,8 @@ int main() {
     drago::rhi::VulkanUniformBuffer uniformbuffer(&device);
     spdlog::info("Uniform OK");
 
-    drago::rhi::VulkanDescriptorSet descriptor_set(&device, &uniformbuffer);
+    drago::rhi::VulkanTexture tex(img, &device);
+    drago::rhi::VulkanDescriptorSet descriptor_set(&device, &uniformbuffer, &tex);
     spdlog::info("Descriptor Set OK");
 
     drago::rhi::VulkanPipeline pipeline(&device, &renderpass, &swapchain, &descriptor_set);
@@ -120,7 +121,6 @@ int main() {
     drago::rhi::VulkanCommandBuffer cmd(&device, &vertexbuffer, &indexbuffer, &framebuffer, &descriptor_set, &swapchain, &renderpass, &pipeline);
     spdlog::info("CommandBuffer OK");
 
-    drago::rhi::VulkanTexture tex(img, &device);
 #endif
 
     uint32_t current_frame = 0;

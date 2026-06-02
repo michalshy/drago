@@ -2,6 +2,7 @@
 
 #include "renderer/Image.h"
 #include "rhi/vulkan/VulkanDevice.h"
+#include "vulkan/vulkan.hpp"
 namespace drago::rhi
 {
 
@@ -14,6 +15,9 @@ public:
         VulkanDevice* device
     );
     ~VulkanTexture();
+
+    vk::ImageView get_img_view() { return tex_view; }
+    vk::Sampler get_sampler() { return sampler; }
 
 private:
     VulkanDevice* device;

@@ -1,6 +1,7 @@
 #include "VulkanPipeline.h"
 #include "renderer/Vertex.h"
 
+#include <cstddef>
 #include <fstream>
 #include <vector>
 #include <vulkan/vulkan_enums.hpp>
@@ -39,7 +40,7 @@ static vk::VertexInputBindingDescription get_binding_description()
         .setInputRate(vk::VertexInputRate::eVertex);
 }
 
-static std::array<vk::VertexInputAttributeDescription, 2> get_attribute_descriptions()
+static std::array<vk::VertexInputAttributeDescription, 3> get_attribute_descriptions()
 {
     return {{
         vk::VertexInputAttributeDescription{}
@@ -52,6 +53,11 @@ static std::array<vk::VertexInputAttributeDescription, 2> get_attribute_descript
             .setBinding(0)
             .setFormat(vk::Format::eR32G32B32Sfloat)
             .setOffset(offsetof(drago::renderer::Vertex, color)),
+        vk::VertexInputAttributeDescription{}
+            .setLocation(2)
+            .setBinding(0)
+            .setFormat(vk::Format::eR32G32Sfloat)
+            .setOffset(offsetof(drago::renderer::Vertex, tex_coord))
     }};
 }
 

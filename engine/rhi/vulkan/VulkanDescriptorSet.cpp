@@ -1,6 +1,7 @@
 #include "VulkanDescriptorSet.h"
 #include "renderer/Types.h"
 #include "rhi/vulkan/VulkanUtils.h"
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -13,28 +14,42 @@ namespace drago::rhi
 
 VulkanDescriptorSet::VulkanDescriptorSet(
     VulkanDevice* device,
-    VulkanUniformBuffer* ubo_buffer
+    VulkanUniformBuffer* ubo_buffer,
+    VulkanTexture* tex
 )
     : device(device)
     , ubo_buffer(ubo_buffer)
+    , tex(tex)
 {
     // layout
-    auto ubo_layout = vk::DescriptorSetLayoutBinding{}
-        .setBinding(0)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(1)
-        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+    std::array<vk::DescriptorSetLayoutBinding, 2> ubo_layout{
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(0)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex),
+        vk::DescriptorSetLayoutBinding{}
+            .setBinding(1)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+    };
 
     auto layout_info = vk::DescriptorSetLayoutCreateInfo{}
-        .setBindingCount(1)
+        .setBindingCount(ubo_layout.size())
         .setBindings(ubo_layout);
 
     descriptor_layout = device->get().createDescriptorSetLayout(layout_info);
 
     //pools
-    auto pool_size = vk::DescriptorPoolSize{}
-        .setType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(MAX_FRAMES_IN_FLIGHT);
+    std::array<vk::DescriptorPoolSize, 2> pool_size{
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(MAX_FRAMES_IN_FLIGHT),
+        vk::DescriptorPoolSize{}
+            .setType(vk::DescriptorType::eCombinedImageSampler)
+            .setDescriptorCount(MAX_FRAMES_IN_FLIGHT)
+    };
 
     auto pool_info = vk::DescriptorPoolCreateInfo{}
         .setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet)
@@ -61,15 +76,29 @@ VulkanDescriptorSet::VulkanDescriptorSet(
             .setOffset(0)
             .setRange(sizeof(renderer::UniformBufferObject));
 
-        auto desc_write = vk::WriteDescriptorSet{}
-            .setDstSet(sets[i])
-            .setDstBinding(0)
-            .setDstArrayElement(0)
-            .setDescriptorCount(1)
-            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            .setPBufferInfo(&buffer_info);
+        auto image_info = vk::DescriptorImageInfo{}
+            .setSampler(tex->get_sampler())
+            .setImageView(tex->get_img_view())
+            .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
-        device->get().updateDescriptorSets(desc_write, {});
+        std::array<vk::WriteDescriptorSet, 2> desc_writes{
+            vk::WriteDescriptorSet{}
+                .setDstSet(sets[i])
+                .setDstBinding(0)
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                .setPBufferInfo(&buffer_info),
+            vk::WriteDescriptorSet{}
+                .setDstSet(sets[i])
+                .setDstBinding(1)
+                .setDstArrayElement(0)
+                .setDescriptorCount(1)
+                .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                .setPImageInfo(&image_info)
+        };
+
+        device->get().updateDescriptorSets(desc_writes, {});
     }
 
 }

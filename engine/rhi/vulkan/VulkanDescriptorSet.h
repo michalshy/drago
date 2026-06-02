@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rhi/vulkan/VulkanDevice.h"
+#include "rhi/vulkan/VulkanTexture.h"
 #include "rhi/vulkan/VulkanUniformBuffer.h"
 #include <vector>
 namespace drago::rhi
@@ -12,7 +13,8 @@ class VulkanDescriptorSet
 public:
     VulkanDescriptorSet(
         VulkanDevice* device,
-        VulkanUniformBuffer* ubo_buffer
+        VulkanUniformBuffer* ubo_buffer,
+        VulkanTexture* tex
     );
     ~VulkanDescriptorSet();
 
@@ -21,6 +23,7 @@ public:
 private:
     VulkanDevice* device;
     VulkanUniformBuffer* ubo_buffer;
+    VulkanTexture* tex;
 
     vk::DescriptorSetLayout descriptor_layout;
     vk::DescriptorPool pool;
