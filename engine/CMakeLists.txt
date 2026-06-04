@@ -56,4 +56,37 @@ target_compile_definitions(engine PRIVATE
     ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
 )
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${stb_SOURCE_DIR})
-target_link_libraries(engine PUBLIC glfw glm spdlog::spdlog ${ENGINE_RHI_LIBS})
+target_link_libraries(engine PUBLIC 
+    imgui 
+    glfw 
+    glm 
+    spdlog::spdlog 
+    ${ENGINE_RHI_LIBS}
+    GPUOpen::VulkanMemoryAllocator    
+)
+
+set(IMGUI_SOURCES
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+)
+
+if(RHI_BACKEND STREQUAL "vulkan")
+    list(APPEND IMGUI_SOURCES ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp)
+elseif(RHI_BACKEND STREQUAL "metal")
+    list(APPEND IMGUI_SOURCES ${imgui_SOURCE_DIR}/backends/imgui_impl_metal.mm)
+endif()
+
+add_library(imgui STATIC ${IMGUI_SOURCES})
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+
+if(RHI_BACKEND STREQUAL "vulkan")
+    target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
+elseif(RHI_BACKEND STREQUAL "metal")
+    target_link_libraries(imgui PUBLIC glfw)
+endif()

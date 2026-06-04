@@ -36,14 +36,29 @@ FetchContent_MakeAvailable(Catch2)
 FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git)
 FetchContent_MakeAvailable(stb)
 
+# ImGui
+FetchContent_Declare(imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui
+    GIT_TAG        docking
+)
+FetchContent_MakeAvailable(imgui)
+
 option(USE_METAL "Use native Metal backend" OFF)
 
 set(RHI_BACKEND "vulkan" CACHE STRING "RHI backend: vulkan, metal, dx12")
 
 if(RHI_BACKEND STREQUAL "vulkan")
     find_package(Vulkan REQUIRED)
+
+    FetchContent_Declare(vma
+        GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+        GIT_TAG        v3.2.1
+    )
+    FetchContent_MakeAvailable(vma)
+
 elseif(RHI_BACKEND STREQUAL "metal")
     # Metal frameworks
 elseif(RHI_BACKEND STREQUAL "dx12")
     # D3D12
 endif()
+
