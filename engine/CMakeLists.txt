@@ -19,20 +19,16 @@ if(RHI_BACKEND STREQUAL "metal")
     set(ENGINE_RHI_LIBS "-framework Metal" "-framework QuartzCore" "-framework Foundation")
 else()
     set(ENGINE_RHI_SOURCES
-        rhi/vulkan/VulkanInstance.cpp
-        rhi/vulkan/VulkanRenderPass.cpp
         rhi/vulkan/VulkanPipeline.cpp
         rhi/vulkan/VulkanDevice.cpp
         rhi/vulkan/VulkanSwapchain.cpp
-        rhi/vulkan/VulkanSurface.cpp
-        rhi/vulkan/VulkanFramebuffer.cpp
-        rhi/vulkan/VulkanCommandBuffer.cpp
         rhi/vulkan/VulkanVertexBuffer.cpp
         rhi/vulkan/VulkanUtils.cpp
         rhi/vulkan/VulkanIndexBuffer.cpp
         rhi/vulkan/VulkanUniformBuffer.cpp
         rhi/vulkan/VulkanDescriptorSet.cpp
         rhi/vulkan/VulkanTexture.cpp
+        rhi/vulkan/VulkanRenderer.cpp
     )
     set(ENGINE_RHI_DEFINES DRAGO_VULKAN VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
     set(ENGINE_RHI_LIBS Vulkan::Vulkan)

@@ -1,16 +1,31 @@
 #pragma once
 
-#include "rhi/vulkan/VulkanCommandBuffer.h"
 #include "vulkan/vulkan.hpp"
 #include <cstdint>
 #include <utility>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_core.h>
 
 namespace drago::rhi
 {
     class VulkanDevice;
 
+    struct FrameData
+    {
+        vk::CommandPool pool;
+        vk::CommandBuffer buffer;
+        vk::Semaphore render_semaphore, swapchain_semaphore;
+        vk::Fence render_fence;
+    };
+
     const int MAX_FRAMES_IN_FLIGHT = 2;
+
+    vk::ImageSubresourceRange image_subresource_range(vk::ImageAspectFlags aspect_mask);
+
+    vk::SemaphoreSubmitInfo semaphore_submit_info(vk::PipelineStageFlags2 stage_mask, vk::Semaphore semaphore);
+    vk::CommandBufferSubmitInfo command_buffer_submit_info(vk::CommandBuffer cmd);
+    vk::SubmitInfo2 submit_info(vk::CommandBufferSubmitInfo* cmd, vk::SemaphoreSubmitInfo* signal_semaphore_info,
+        vk::SemaphoreSubmitInfo* wait_semaphore_info);
 
     struct SingleCommand
     {
@@ -56,7 +71,6 @@ namespace drago::rhi
     void end_single_command(VulkanDevice* device, SingleCommand cmd);
 
     void transition_img_layout(
-        VulkanDevice* device,
         vk::CommandBuffer buffer,
         const vk::Image& img,
         vk::ImageLayout old_layout,

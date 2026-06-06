@@ -2,7 +2,6 @@
 
 #include "GLFW/glfw3.h"
 #include "rhi/vulkan/VulkanDevice.h"
-#include "rhi/vulkan/VulkanSurface.h"
 #include "vulkan/vulkan.hpp"
 #include <cstdint>
 #include <vector>
@@ -19,7 +18,6 @@ namespace drago::rhi
     {
     public:
         VulkanSwapchain(
-            VulkanSurface* surface,
             VulkanDevice* device,
             GLFWwindow* window  
         );
@@ -29,12 +27,12 @@ namespace drago::rhi
         vk::Extent2D get_extent() { return extent; }
         vk::SurfaceFormatKHR get_format() { return format; }
         std::vector<vk::ImageView>& get_views() { return image_views; }
+        std::vector<vk::Image>& get_images() { return images; }
         uint32_t get_image_count() { return images.size(); }
 
         void present(uint32_t img_idx, vk::Semaphore wait_semaphore);
         void recreate();    
     private:
-        VulkanSurface* surface;
         VulkanDevice* device;
         GLFWwindow* window;
 

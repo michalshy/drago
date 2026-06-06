@@ -23,6 +23,58 @@ namespace details
     }
 }
 
+vk::ImageSubresourceRange image_subresource_range(vk::ImageAspectFlags aspect_mask)
+{
+    vk::ImageSubresourceRange sub_img {};
+    sub_img.aspectMask = aspect_mask;
+    sub_img.baseMipLevel = 0;
+    sub_img.levelCount = VK_REMAINING_MIP_LEVELS;
+    sub_img.baseArrayLayer = 0;
+    sub_img.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+    return sub_img;
+}
+
+vk::SemaphoreSubmitInfo semaphore_submit_info(vk::PipelineStageFlags2 stage_mask, vk::Semaphore semaphore)
+{
+	vk::SemaphoreSubmitInfo submit_info{};
+	submit_info.semaphore = semaphore;
+	submit_info.stageMask = stage_mask;
+	submit_info.deviceIndex = 0;
+	submit_info.value = 1;
+
+	return submit_info;
+}
+
+vk::CommandBufferSubmitInfo command_buffer_submit_info(vk::CommandBuffer cmd)
+{
+	VkCommandBufferSubmitInfo info{};
+	info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+	info.pNext = nullptr;
+	info.commandBuffer = cmd;
+	info.deviceMask = 0;
+
+	return info;
+}
+
+vk::SubmitInfo2 submit_info(vk::CommandBufferSubmitInfo* cmd, vk::SemaphoreSubmitInfo* signal_semaphore_info,
+    vk::SemaphoreSubmitInfo* wait_semaphore_info)
+{
+    vk::SubmitInfo2 info = {};
+    info.pNext = nullptr;
+
+    info.waitSemaphoreInfoCount = wait_semaphore_info == nullptr ? 0 : 1;
+    info.pWaitSemaphoreInfos = wait_semaphore_info;
+
+    info.signalSemaphoreInfoCount = signal_semaphore_info == nullptr ? 0 : 1;
+    info.pSignalSemaphoreInfos = signal_semaphore_info;
+
+    info.commandBufferInfoCount = 1;
+    info.pCommandBufferInfos = cmd;
+
+    return info;
+}
+
 void create_buffer(
     VulkanDevice* device,
     vk::DeviceSize size,
@@ -163,54 +215,35 @@ void end_single_command(VulkanDevice *device, SingleCommand cmd)
 }
 
 void transition_img_layout(
-    VulkanDevice* device,
     vk::CommandBuffer buffer,
     const vk::Image& img,
     vk::ImageLayout old_layout,
     vk::ImageLayout new_layout
 ) {
-    auto barrier = vk::ImageMemoryBarrier{}
+    vk::ImageAspectFlags aspect_mask = (new_layout == vk::ImageLayout::eDepthAttachmentOptimal) 
+        ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor;
+
+    auto barrier = vk::ImageMemoryBarrier2{}
         .setOldLayout(old_layout)
         .setNewLayout(new_layout)
+        .setSrcStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+        .setSrcAccessMask(vk::AccessFlagBits2::eMemoryWrite)
+        .setDstStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+        .setSrcAccessMask(
+            vk::AccessFlagBits2::eMemoryWrite | vk::AccessFlagBits2::eMemoryRead
+        )
         .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setDstQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setImage(img)
         .setSubresourceRange(
-            vk::ImageSubresourceRange{}
-                .setAspectMask(vk::ImageAspectFlagBits::eColor)
-                .setLevelCount(1)
-                .setLayerCount(1)   
+            image_subresource_range(aspect_mask)  
         );
 
-    vk::PipelineStageFlags src_stage;
-    vk::PipelineStageFlags dst_stage;
+    vk::DependencyInfo dep_info = vk::DependencyInfo{}
+        .setImageMemoryBarrierCount(1)
+        .setImageMemoryBarriers(barrier);
 
-    if (
-        old_layout == vk::ImageLayout::eUndefined 
-        && new_layout == vk::ImageLayout::eTransferDstOptimal)
-    {
-    barrier.srcAccessMask = {};
-    barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-
-    src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
-    dst_stage = vk::PipelineStageFlagBits::eTransfer;
-    }
-    else if (
-        old_layout == vk::ImageLayout::eTransferDstOptimal 
-        && new_layout == vk::ImageLayout::eShaderReadOnlyOptimal)
-    {
-    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-    src_stage = vk::PipelineStageFlagBits::eTransfer;
-    dst_stage = vk::PipelineStageFlagBits::eFragmentShader;
-    }
-    else
-    {
-    throw std::invalid_argument("unsupported layout transition!");
-    }
-
-    buffer.pipelineBarrier(src_stage, dst_stage, {}, {}, {}, barrier);
+    buffer.pipelineBarrier2(dep_info);
 }
 
 vk::ImageView create_image_view(

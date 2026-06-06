@@ -65,12 +65,10 @@ static std::array<vk::VertexInputAttributeDescription, 3> get_attribute_descript
 
 VulkanPipeline::VulkanPipeline(
     VulkanDevice* device,
-    VulkanRenderPass* renderpass,
     VulkanSwapchain* swapchain,
     VulkanDescriptorSet* descriptor_set
 )
     : device(device)
-    , renderpass(renderpass)
     , swapchain(swapchain)
     , descriptor_set(descriptor_set)
 {
@@ -165,6 +163,10 @@ void VulkanPipeline::create_graphics_pipeline()
     pipeline_layout = device->get().createPipelineLayout(pipeline_layout_info);
 
     // create pipeline
+    auto color_format = swapchain->get_format().format;
+    auto rendering_info = vk::PipelineRenderingCreateInfo{}
+        .setColorAttachmentCount(1)
+        .setColorAttachmentFormats(color_format);
 
     auto pipeline_info = vk::GraphicsPipelineCreateInfo{}
         .setStageCount(2)
@@ -178,10 +180,9 @@ void VulkanPipeline::create_graphics_pipeline()
         .setPColorBlendState(&color_blending)
         .setPDynamicState(&dynamic_state)
         .setLayout(pipeline_layout)
-        .setRenderPass(renderpass->get())
-        .setSubpass(0)
         .setBasePipelineHandle(nullptr)
-        .setBasePipelineIndex(-1);
+        .setBasePipelineIndex(-1)
+        .setPNext(&rendering_info);
 
     graphics_pipeline = device->get().createGraphicsPipeline(nullptr, pipeline_info).value;
 

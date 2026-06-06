@@ -1,7 +1,6 @@
 #include "VulkanSwapchain.h"
 #include "GLFW/glfw3.h"
 #include "rhi/vulkan/VulkanDevice.h"
-#include "rhi/vulkan/VulkanSurface.h"
 #include "rhi/vulkan/VulkanUtils.h"
 #include "vulkan/vulkan.hpp"
 #include <cstdint>
@@ -12,12 +11,10 @@
 namespace drago::rhi
 {
     VulkanSwapchain::VulkanSwapchain(
-        VulkanSurface* surface,
         VulkanDevice* device,
         GLFWwindow* window
     ) 
-        : surface(surface)
-        , device(device)
+        : device(device)
         , window(window)
         , swapchain(nullptr)
     {
@@ -73,13 +70,13 @@ namespace drago::rhi
             }
 
         auto swapchain_info = vk::SwapchainCreateInfoKHR{}
-            .setSurface(surface->get())
+            .setSurface(device->get_surface())
             .setMinImageCount(image_count)
             .setImageFormat(swapchain_format.format)
             .setImageColorSpace(swapchain_format.colorSpace)
             .setImageExtent(swapchain_extent)
             .setImageArrayLayers(1)
-            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment);
+            .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
 
         QueueFamilyIndices indices = device->find_queue_families(device->get_physical());
         uint32_t queue_family_indices[] = {indices.graphics_family.value(), indices.present_family.value()};

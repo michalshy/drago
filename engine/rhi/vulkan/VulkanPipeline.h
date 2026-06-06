@@ -5,7 +5,6 @@
 #include <vulkan/vulkan_structs.hpp>
 #include "VulkanDevice.h"
 #include "rhi/vulkan/VulkanDescriptorSet.h"
-#include "rhi/vulkan/VulkanRenderPass.h"
 #include "rhi/vulkan/VulkanSwapchain.h"
 #include "vulkan/vulkan.hpp"
 
@@ -17,7 +16,6 @@ class VulkanPipeline
 public:
     explicit VulkanPipeline(
         VulkanDevice* device,
-        VulkanRenderPass* renderpass,
         VulkanSwapchain* swapchain,
         VulkanDescriptorSet* descriptor_set
     );
@@ -27,7 +25,6 @@ public:
     vk::PipelineLayout get_layout() { return pipeline_layout; }
 private:
     VulkanDevice* device;
-    VulkanRenderPass* renderpass;
     VulkanSwapchain* swapchain;
     VulkanDescriptorSet* descriptor_set;
 
